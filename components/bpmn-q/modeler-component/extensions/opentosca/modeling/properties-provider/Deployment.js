@@ -1,8 +1,8 @@
 import {SelectEntry} from "@bpmn-io/properties-panel";
 import React from "@bpmn-io/properties-panel/preact/compat";
 import {useService} from "bpmn-js-properties-panel";
-import {getServiceTaskLikeBusinessObject} from "../../../../../editor/util/camunda-utils/ImplementationTypeUtils";
-import {getImplementationType} from "../../../utilities/ImplementationTypeHelperExtension";
+import {getServiceTaskLikeBusinessObject} from "../../../../editor/util/camunda-utils/ImplementationTypeUtils";
+import {getImplementationType} from "../../../quantme/utilities/ImplementationTypeHelperExtension";
 
 /**
  * Copyright (c) 2021 Institute of Architecture of Application Systems -
@@ -66,7 +66,7 @@ export function Deployment({element, translate, wineryEndpoint}) {
 
     const get = function () {
         let bo = getServiceTaskLikeBusinessObject(element);
-        let deploymentModelUrl = bo && bo.get('quantme:deploymentModelUrl');
+        let deploymentModelUrl = bo && bo.get('opentosca:deploymentModelUrl');
         return {
             deploymentModelUrl: deploymentModelUrl,
             deploymentModelUrlLabel: translate('CSAR Name')
