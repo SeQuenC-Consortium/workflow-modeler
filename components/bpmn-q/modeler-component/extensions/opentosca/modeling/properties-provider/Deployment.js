@@ -1,7 +1,6 @@
 import {SelectEntry} from "@bpmn-io/properties-panel";
 import React from "@bpmn-io/properties-panel/preact/compat";
 import {useService} from "bpmn-js-properties-panel";
-import {getServiceTaskLikeBusinessObject} from "../../../../editor/util/camunda-utils/ImplementationTypeUtils";
 import {getImplementationType} from "../../../quantme/utilities/ImplementationTypeHelperExtension";
 
 /**
@@ -35,24 +34,12 @@ export function Deployment({element, translate, wineryEndpoint}) {
             url: wineryEndpoint + '/servicetemplates/?grouped',
             method: 'GET',
             success: function (result) {
-                let checks = 0;
                 for (let i = 0; i < result.length; i++) {
-                    if (result[i].text === QUANTME_NAMESPACE_PULL) {
+                    if (result[i].text === QUANTME_NAMESPACE_PULL || result[i].text === QUANTME_NAMESPACE_PUSH) {
                         result[i].children.forEach(element => arrValues.push({
                             label: element.text,
                             value: concatenateCsarEndpoint('{{ wineryEndpoint }}', result[i].id, element.text)
                         }));
-                        checks++;
-                    }
-                    if (result[i].text === QUANTME_NAMESPACE_PUSH) {
-                        result[i].children.forEach(element => arrValues.push({
-                            label: element.text,
-                            value: concatenateCsarEndpoint('{{ wineryEndpoint }}', result[i].id, element.text)
-                        }));
-                        checks++;
-                    }
-                    if (checks === 2) {
-                        break;
                     }
                 }
             },
