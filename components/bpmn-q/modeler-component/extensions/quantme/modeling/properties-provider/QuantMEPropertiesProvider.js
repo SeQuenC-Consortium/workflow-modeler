@@ -1,4 +1,4 @@
-import {is} from 'bpmn-js/lib/util/ModelUtil';
+import { is } from 'bpmn-js/lib/util/ModelUtil';
 import * as consts from "../../Constants";
 import * as dataConsts from "../../../data-extension/Constants";
 import {
@@ -8,13 +8,15 @@ import {
     QuantumCircuitExecutionTaskProperties,
     QuantumCircuitLoadingTaskProperties,
     QuantumComputationTaskProperties,
-    ReadoutErrorMitigationTaskProperties
+    ReadoutErrorMitigationTaskProperties,
+    CircuitCuttingSubprocessEntries,
+    ResultEvaluationTaskEntries,
+    ParameterOptimizationTaskEntries,
+    VariationalQuantumAlgorithmTaskEntries,
+    WarmStartingTaskEntries
 } from "./QuantMETaskProperties";
-import {ImplementationProps} from "./service-task/ImplementationProps";
-import {Group} from "@bpmn-io/properties-panel";
-import {getWineryEndpoint} from '../../framework-config/config-manager';
 import * as configConsts from '../../../../editor/configurations/Constants';
-import {instance as dataObjectConfigs} from '../../configurations/DataObjectConfigurations';
+import { instance as dataObjectConfigs } from '../../configurations/DataObjectConfigurations';
 import ConfigurationsProperties from '../../../../editor/configurations/ConfigurationsProperties';
 
 const LOW_PRIORITY = 500;
@@ -29,7 +31,6 @@ const LOW_PRIORITY = 500;
  * @param bpmnFactory
  */
 export default function QuantMEPropertiesProvider(propertiesPanel, injector, translate, eventBus, bpmnFactory) {
-
     // subscribe to config updates to retrieve the currently defined Winery endpoint
     const self = this;
     let wineryEndpoint;
@@ -59,11 +60,6 @@ export default function QuantMEPropertiesProvider(propertiesPanel, injector, tra
             // add properties of QuantME tasks to panel
             if (element.type && element.type.startsWith('quantme:')) {
                 groups.unshift(createQuantMEGroup(element, translate));
-            }
-
-            // update ServiceTasks with the deployment extension
-            if (element.type && element.type === 'bpmn:ServiceTask') {
-                groups[2] = ImplementationGroup(element, injector, getWineryEndpoint());
             }
 
             // add properties group for displaying the properties defined by the configurations if a configuration
@@ -103,34 +99,6 @@ function createQuantMEGroup(element, translate) {
 }
 
 /**
- * Properties group to show customized implementation options entry for service tasks.
- *
- * @param element The element to show the properties for.
- * @param injector The injector of the bpmn-js modeler
- * @param wineryEndpoint The winery endpoint of the QuantME plugin
- * @return {null|{component: ((function(*): preact.VNode<any>)|*), entries: *[], label, id: string}}
- * @constructor
- */
-function ImplementationGroup(element, injector, wineryEndpoint) {
-    const translate = injector.get('translate');
-
-    const group = {
-        label: translate('Implementation'),
-        id: 'CamundaPlatform__Implementation',
-        component: Group,
-        entries: [
-            ...ImplementationProps({element, wineryEndpoint, translate})
-        ]
-    };
-
-    if (group.entries.length) {
-        return group;
-    }
-
-    return null;
-}
-
-/**
  * Add the property entries for the QuantME attributes to the given group based on the type of the QuantME element
  *
  * @param element the QuantME element
@@ -159,7 +127,16 @@ function QuantMEProps(element) {
 
         case consts.QUANTUM_HARDWARE_SELECTION_SUBPROCESS:
             return HardwareSelectionSubprocessProperties(element);
-
+        case consts.CIRCUIT_CUTTING_SUBPROCESS:
+            return CircuitCuttingSubprocessEntries(element);
+        case consts.RESULT_EVALUATION_TASK:
+            return ResultEvaluationTaskEntries(element);
+        case consts.PARAMETER_OPTIMIZATION_TASK:
+            return ParameterOptimizationTaskEntries(element);
+        case consts.VARIATIONAL_QUANTUM_ALGORITHM_TASK:
+            return VariationalQuantumAlgorithmTaskEntries(element);
+        case consts.WARM_STARTING_TASK:
+            return WarmStartingTaskEntries(element);
         default:
             console.log('Unsupported QuantME element of type: ', element.type);
 

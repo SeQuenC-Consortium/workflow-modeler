@@ -1,17 +1,23 @@
 import * as consts from "../utilities/Constants";
-import {getXml} from "../../../editor/util/IoUtilities";
+import { getXml } from "../../../editor/util/IoUtilities";
 import {
     setInputParameter,
-    getDefinitionsFromXml, getRootProcess, getSingleFlowElement,
+    getDefinitionsFromXml,
+    getRootProcess,
+    getSingleFlowElement,
+    addCamundaInputParameter,
+    setOutputParameter,
+    getCamundaInputOutput,
 
 } from "../../../editor/util/ModellingUtilities";
-import {createTempModelerFromXml} from '../../../editor/ModelerHandler';
-import {insertShape} from "../../../editor/util/TransformationUtilities";
+import { createTempModelerFromXml } from '../../../editor/ModelerHandler';
+import { insertShape } from "../../../editor/util/TransformationUtilities";
 import * as dataConsts from '../../data-extension/Constants';
 import {
     createProcessContextVariablesTask,
     transformDataStoreMap
 } from '../../data-extension/transformation/TransformationManager';
+import { layout } from '../../quantme/replacement/layouter/Layouter';
 
 /**
  * Replace custom PlanQK extensions with camunda bpmn elements
@@ -22,6 +28,7 @@ import {
 export async function startPlanqkReplacementProcess(xml) {
     let modeler = await createTempModelerFromXml(xml);
     let elementRegistry = modeler.get('elementRegistry');
+    let modeling = modeler.get('modeling');
 
     // get root element of the current diagram
     const definitions = modeler.getDefinitions();
@@ -31,7 +38,7 @@ export async function startPlanqkReplacementProcess(xml) {
 
     if (typeof rootProcess === 'undefined') {
         console.log('Unable to retrieve root process element from definitions!');
-        return {status: 'failed', cause: 'Unable to retrieve root process element from definitions!'};
+        return { status: 'failed', cause: 'Unable to retrieve root process element from definitions!' };
     }
 
     // Mark process as executable
@@ -68,7 +75,7 @@ export async function startPlanqkReplacementProcess(xml) {
 
     // check if transformation is necessary
     if (isTransformed) {
-        return {status: 'transformed', xml: xml};
+        return { status: 'transformed', xml: xml };
     }
 
     const processContextVariables = {};
@@ -96,10 +103,10 @@ export async function startPlanqkReplacementProcess(xml) {
         createProcessContextVariablesTask(processContextVariables, rootProcess, definitions, modeler);
     }
 
-    // layout(modeling, elementRegistry, rootProcess);
+    layout(modeling, elementRegistry, rootProcess);
 
     const transformedXml = await getXml(modeler);
-    return {status: 'transformed', xml: transformedXml};
+    return { status: 'transformed', xml: transformedXml };
 }
 
 /**
@@ -136,8 +143,9 @@ async function replaceByInteractionSubprocess(definitions, task, parent, replace
     subprocessShape.isExpanded = true;
 
     // create inputs and outputs for the subprocess
-    applyTaskInput2Subprocess(task, result['element'].businessObject);
-    applyTaskOutput2Subprocess(task, result['element'].businessObject);
+    const bpmnFactory = modeler.get('bpmnFactory');
+    applyTaskInput2Subprocess(task, result['element'].businessObject, bpmnFactory);
+    applyTaskOutput2Subprocess(task, result['element'].businessObject, bpmnFactory);
 
     return result['success'];
 }
@@ -147,15 +155,21 @@ async function replaceByInteractionSubprocess(definitions, task, parent, replace
  *
  * @param taskBO The given PlanQK Service Task.
  * @param subprocessBO The given subprocess.
+ * @param bpmnFactory
  */
-function applyTaskInput2Subprocess(taskBO, subprocessBO) {
+function applyTaskInput2Subprocess(taskBO, subprocessBO, bpmnFactory) {
 
-    setInputParameter(subprocessBO, "params", taskBO.params);
-    setInputParameter(subprocessBO, "data", taskBO.data);
-    setInputParameter(subprocessBO, "serviceEndpoint", taskBO.serviceEndpoint);
-    setInputParameter(subprocessBO, "tokenEndpoint", taskBO.tokenEndpoint);
-    setInputParameter(subprocessBO, "consumerSecret", taskBO.consumerSecret);
-    setInputParameter(subprocessBO, "consumerKey", taskBO.consumerKey);
+    const taskIo = getCamundaInputOutput(taskBO, bpmnFactory);
+    const subProcessIo = getCamundaInputOutput(subprocessBO, bpmnFactory);
+
+    subProcessIo.inputParameters.push(...taskIo.inputParameters);
+
+    setInputParameter(subprocessBO, "params", taskBO.params, bpmnFactory);
+    setInputParameter(subprocessBO, "data", taskBO.data, bpmnFactory);
+    setInputParameter(subprocessBO, "serviceEndpoint", taskBO.serviceEndpoint, bpmnFactory);
+    setInputParameter(subprocessBO, "tokenEndpoint", taskBO.tokenEndpoint, bpmnFactory);
+    setInputParameter(subprocessBO, "consumerSecret", taskBO.consumerSecret, bpmnFactory);
+    setInputParameter(subprocessBO, "consumerKey", taskBO.consumerKey, bpmnFactory);
 }
 
 /**
@@ -163,9 +177,16 @@ function applyTaskInput2Subprocess(taskBO, subprocessBO) {
  *
  * @param taskBO the PlanQK Service Task
  * @param subprocessBO the subprocess
+ * @param bpmnFactory
  */
-function applyTaskOutput2Subprocess(taskBO, subprocessBO) {
-    setInputParameter(subprocessBO, "result", taskBO.params);
+function applyTaskOutput2Subprocess(taskBO, subprocessBO, bpmnFactory) {
+
+    const taskIo = getCamundaInputOutput(taskBO, bpmnFactory);
+    const subProcessIo = getCamundaInputOutput(subprocessBO, bpmnFactory);
+
+    subProcessIo.outputParameters.push(...taskIo.outputParameters);
+
+    setOutputParameter(subprocessBO, "result", taskBO.params, bpmnFactory);
 }
 
 /**
@@ -185,7 +206,7 @@ async function replaceByDataStore(definitions, dataPool, parentProcess, processC
 
     // add data pool link to details attribute of data pool
     const parameters = dataPool.get(dataConsts.DETAILS) || [];
-    const linkParam = bpmnFactory.create(dataConsts.KEY_VALUE_ENTRY, {name: consts.DATA_POOL_LINK, value: dataPool.get(consts.DATA_POOL_LINK)});
+    const linkParam = bpmnFactory.create(dataConsts.KEY_VALUE_ENTRY, { name: consts.DATA_POOL_LINK, value: dataPool.get(consts.DATA_POOL_LINK) });
     parameters.push(linkParam);
 
     // transform data pool like data store map
@@ -211,7 +232,7 @@ export function getPlanqkServiceTasks(process, elementRegistry) {
     for (let i = 0; i < flowElements.length; i++) {
         let flowElement = flowElements[i];
         if (flowElement.$type && flowElement.$type === consts.PLANQK_SERVICE_TASK) {
-            planqkServiceTasks.push({task: flowElement, parent: processBo});
+            planqkServiceTasks.push({ task: flowElement, parent: processBo });
         }
 
         // recursively retrieve service tasks if subprocess is found
@@ -239,7 +260,7 @@ export function getPlanqkDataPools(process, elementRegistry) {
     for (let i = 0; i < flowElements.length; i++) {
         let flowElement = flowElements[i];
         if (flowElement.$type && flowElement.$type === consts.PLANQK_DATA_POOL) {
-            planqkDataPools.push({pool: flowElement, parent: processBo});
+            planqkDataPools.push({ pool: flowElement, parent: processBo });
         }
 
         // recursively retrieve service tasks if subprocess is found

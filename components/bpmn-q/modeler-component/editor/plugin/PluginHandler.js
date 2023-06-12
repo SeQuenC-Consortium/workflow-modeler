@@ -1,5 +1,6 @@
 import PlanQKPlugin from "../../extensions/planqk/PlanQKPlugin";
 import QuantMEPlugin from "../../extensions/quantme/QuantMEPlugin";
+import OpenToscaPlugin from "../../extensions/opentosca/OpenToscaPlugin";
 import DataFlowPlugin from '../../extensions/data-extension/DataFlowPlugin';
 import QHAnaPlugin from '../../extensions/qhana/QHAnaPlugin';
 import {getAllConfigs} from "./PluginConfigHandler";
@@ -16,6 +17,7 @@ const PLUGINS = [
     QHAnaPlugin,
     PlanQKPlugin,
     QuantMEPlugin,
+    OpenToscaPlugin
 ];
 
 // list of currently active plugins in the current running instance of the modeler, defined based on the plugin configuration
@@ -36,13 +38,14 @@ export function getActivePlugins() {
     } else {
 
         activePlugins = [];
+        
 
         let plugin;
 
         // add all plugins of PLUGINS to active plugins which have a config entry for them
         for (let pluginConfig of getAllConfigs()) {
 
-            plugin = PLUGINS.find(plugin => plugin.name === pluginConfig.name);
+            plugin = PLUGINS.find(plugin => plugin.name === pluginConfig.name && checkEnabledStatus(plugin.name));
 
             if (plugin) {
                 activePlugins.push(plugin);
@@ -52,6 +55,20 @@ export function getActivePlugins() {
     }
 }
 
+export function checkEnabledStatus(pluginName) {
+    switch(pluginName) {
+        case 'dataflow':
+            return process.env.ENABLE_DATA_FLOW_PLUGIN;
+        case 'planqk':
+            return process.env.ENABLE_PLANQK_PLUGIN;
+        case 'qhana':
+            return process.env.ENABLE_QHANA_PLUGIN;
+        case 'quantme':
+            return process.env.ENABLE_QUANTME_PLUGIN;
+        case 'opentosca':
+            return process.env.ENABLE_OPENTOSCA_PLUGIN;
+    }
+}
 /**
  * Returns all additional modules for the bpmn-js modeler the active plugins define in their extensionModule
  * property as an array.

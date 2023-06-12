@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Institute of Architecture of Application Systems -
+ * Copyright (c) 2023 Institute of Architecture of Application Systems -
  * University of Stuttgart
  *
  * This program and the accompanying materials are made available under the
@@ -65,7 +65,7 @@ export function getImplementationType(element) {
         return 'delegateExpression';
     }
 
-    const deploymentModelUrl = businessObject.get('quantme:deploymentModelUrl');
+    const deploymentModelUrl = businessObject.get('opentosca:deploymentModelUrl');
     if (typeof deploymentModelUrl !== 'undefined') {
         return 'deploymentModel';
     }

@@ -1,9 +1,11 @@
 import * as planqkReplaceOptions from './PlanQKReplaceOptions';
-import {is} from 'bpmn-js/lib/util/ModelUtil';
+import { is } from 'bpmn-js/lib/util/ModelUtil';
 import * as consts from './utilities/Constants';
-import {createMenuEntries, createMoreOptionsEntryWithReturn} from "../../editor/util/PopupMenuUtilities";
-import {getPluginConfig} from "../../editor/plugin/PluginConfigHandler";
+import { createMenuEntries, createMoreOptionsEntryWithReturn } from "../../editor/util/PopupMenuUtilities";
+import { getPluginConfig } from "../../editor/plugin/PluginConfigHandler";
 import * as planqkConsts from './utilities/Constants';
+import { filter } from 'min-dash';
+import { isDifferentType } from 'bpmn-js/lib/features/popup-menu/util/TypeUtil';
 
 /**
  * Replace menu provider of the PlanQK plugin. Adds custom replacement entries to model PlanQk service tasks and PlanQK data pools.
@@ -35,7 +37,7 @@ export default class PlanQKMenuProvider {
     getPopupMenuEntries(element) {
         const self = this;
         return function (entries) {
-
+            
             // do not show entries for extension elements of other plugins
             if (!(element.type.startsWith('bpmn') || element.type.startsWith('planqk'))) {
                 return entries;
@@ -43,7 +45,8 @@ export default class PlanQKMenuProvider {
 
             // add replacement entries for the active service subscription as replacements for a PlanQK service task
             if (is(element, consts.PLANQK_SERVICE_TASK)) {
-                return self.createPlanQKServiceTaskEntries(element, self.activeSubscriptions);
+                let serviceTaskEntries = self.createTaskEntries(element, self.activeSubscriptions);
+                return Object.assign(serviceTaskEntries, entries);
             }
 
             // add replacement entries for the available data pools as replacements for a PlanQK data pool
@@ -52,15 +55,10 @@ export default class PlanQKMenuProvider {
                 return Object.assign(dataPoolEntries, entries);
             }
 
-            // add entry to replace a data store by a data pool
-            if (is(element, 'bpmn:DataStoreReference') && !is(element, consts.PLANQK_DATA_POOL)) {
-                const dataStoreEntries = createMenuEntries(element, planqkReplaceOptions.DATA_STORE, self.translate, self.replaceElement);
-                return Object.assign(dataStoreEntries, entries);
-            }
-
             // add entry to replace a data object by a data pool
             if (is(element, 'bpmn:DataObjectReference')) {
-                const planqkEntries = createMenuEntries(element, planqkReplaceOptions.DATA_STORE, self.translate, self.replaceElement);
+                let filteredOptions = filter(planqkReplaceOptions.DATA_STORE, isDifferentType(element));
+                const planqkEntries = createMenuEntries(element, filteredOptions, self.translate, self.replaceElement);
                 return Object.assign(entries, planqkEntries);
             }
 
@@ -87,9 +85,10 @@ export default class PlanQKMenuProvider {
         const replaceElement = this.replaceElement;
         const activeSubscriptions = this.activeSubscriptions;
         const self = this;
-
         let options = self.createPlanQKServiceTaskEntries(element, activeSubscriptions);
-        options = Object.assign(createMenuEntries(element, planqkReplaceOptions.TASK, translate, replaceElement), options);
+        if (element.type !== consts.PLANQK_SERVICE_TASK) {
+            options = Object.assign(createMenuEntries(element, planqkReplaceOptions.TASK, translate, replaceElement), options);
+        }
 
         return {
             ['replace-by-more-planqk-task-options']: createMoreOptionsEntryWithReturn(
@@ -149,7 +148,7 @@ export default class PlanQKMenuProvider {
                 // replace selected element if it is not already a PlanQK service task
                 let newElement;
                 if (element.type !== planqkConsts.PLANQK_SERVICE_TASK) {
-                    newElement = replaceElement(element, {type: planqkConsts.PLANQK_SERVICE_TASK});
+                    newElement = replaceElement(element, { type: planqkConsts.PLANQK_SERVICE_TASK });
                 }
                 let serviceElement = newElement || element;
 
@@ -184,16 +183,21 @@ export default class PlanQKMenuProvider {
         let dataPoolEntries = {};
 
         // add entry for a generic, unspecific data pool
-        dataPoolEntries['replace-with-generic-data-pool'] = this.createNewDataPoolEntry(element, {
-            label: 'PlanQK Data Pool', name: '', link: '', description: ''
-        });
+        if (element.businessObject.name) {
+            dataPoolEntries['replace-with-generic-data-pool'] = this.createNewDataPoolEntry(element, {
+                label: 'PlanQK Data Pool', name: '', link: '', description: ''
+            });
+        }
 
         console.log(`Create menu entries for ${dataPools.length} data pools`);
 
         // create a replacement menu entry for each data pool
         for (let dataPool of dataPools) {
-            dataPoolEntries['replace-with-' + dataPool.id + ' (2)'] = this.createNewDataPoolEntry(element, dataPool);
+            if (element.businessObject.name !== dataPool.name) {
+                dataPoolEntries['replace-with-' + dataPool.id + ' (2)'] = this.createNewDataPoolEntry(element, dataPool);
+            }
         }
+
         return dataPoolEntries;
     }
 

@@ -1,11 +1,10 @@
 import {SelectEntry} from "@bpmn-io/properties-panel";
 import React from "@bpmn-io/properties-panel/preact/compat";
 import {useService} from "bpmn-js-properties-panel";
-import {getServiceTaskLikeBusinessObject} from "../../../../../editor/util/camunda-utils/ImplementationTypeUtils";
-import {getImplementationType} from "../../../utilities/ImplementationTypeHelperExtension";
+import {getImplementationType} from "../../../quantme/utilities/ImplementationTypeHelperExtension";
 
 /**
- * Copyright (c) 2021 Institute of Architecture of Application Systems -
+ * Copyright (c) 2023 Institute of Architecture of Application Systems -
  * University of Stuttgart
  *
  * This program and the accompanying materials are made available under the
@@ -35,28 +34,16 @@ export function Deployment({element, translate, wineryEndpoint}) {
             url: wineryEndpoint + '/servicetemplates/?grouped',
             method: 'GET',
             success: function (result) {
-                let checks = 0;
                 for (let i = 0; i < result.length; i++) {
-                    if (result[i].text === QUANTME_NAMESPACE_PULL) {
+                    if (result[i].text === QUANTME_NAMESPACE_PULL || result[i].text === QUANTME_NAMESPACE_PUSH) {
                         result[i].children.forEach(element => arrValues.push({
                             label: element.text,
                             value: concatenateCsarEndpoint('{{ wineryEndpoint }}', result[i].id, element.text)
                         }));
-                        checks++;
-                    }
-                    if (result[i].text === QUANTME_NAMESPACE_PUSH) {
-                        result[i].children.forEach(element => arrValues.push({
-                            label: element.text,
-                            value: concatenateCsarEndpoint('{{ wineryEndpoint }}', result[i].id, element.text)
-                        }));
-                        checks++;
-                    }
-                    if (checks === 2) {
-                        break;
                     }
                 }
             },
-            async: true
+            async: false
         });
         if (arrValues.length === 0) {
             arrValues.push({label: 'No CSARs available', value: ''});
@@ -65,21 +52,15 @@ export function Deployment({element, translate, wineryEndpoint}) {
     };
 
     const get = function () {
-        let bo = getServiceTaskLikeBusinessObject(element);
-        let deploymentModelUrl = bo && bo.get('quantme:deploymentModelUrl');
-        return {
-            deploymentModelUrl: deploymentModelUrl,
-            deploymentModelUrlLabel: translate('CSAR Name')
-        };
+        return element.businessObject.get('opentosca:deploymentModelUrl');
     };
 
-    const set = function (value) {
-        let prop = {deploymentModelUrl: value.deploymentModelUrl || ''};
-        return modeling.updateProperties(element, prop);
+    const setValue = function (value) {
+        return modeling.updateProperties(element, {deploymentModelUrl: value || ''});
     };
 
-    const validate = function (element, values, node) {
-        return getImplementationType(element) === 'deploymentModel' && !values.deploymentModelUrl ? {deploymentModelUrl: translate('Must provide a CSAR')} : {};
+    const validate = function (values) {
+        return values === undefined || values===''? translate('Must provide a CSAR') : '';
     };
 
     const hidden = function () {
@@ -93,7 +74,7 @@ export function Deployment({element, translate, wineryEndpoint}) {
             id={'deployment'}
             label={translate('CSAR Name')}
             getValue={get}
-            setValue={set}
+            setValue={setValue}
             getOptions={selectOptions}
             validate={validate}
             debounce={debounce}

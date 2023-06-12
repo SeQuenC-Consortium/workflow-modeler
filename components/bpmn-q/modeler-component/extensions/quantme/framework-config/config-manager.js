@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Institute of Architecture of Application Systems -
+ * Copyright (c) 2023 Institute of Architecture of Application Systems -
  * University of Stuttgart
  *
  * This program and the accompanying materials are made available under the
@@ -78,56 +78,6 @@ export function setTransformationFrameworkEndpoint(transformationFrameworkEndpoi
 }
 
 /**
- * Get the endpoint of the configured OpenTOSCA container
- *
- * @return {string} the currently specified endpoint of the OpenTOSCA container
- */
-export function getOpenTOSCAEndpoint() {
-    if (config.opentoscaEndpoint === undefined) {
-        setOpenTOSCAEndpoint(
-            getPluginConfig('quantme').opentoscaEndpoint
-            || defaultConfig.opentoscaEndpoint);
-    }
-    return config.opentoscaEndpoint;
-}
-
-/**
- * Set the endpoint of the OpenTOSCA container
- *
- * @param opentoscaEndpoint the endpoint of the OpenTOSCA container
- */
-export function setOpenTOSCAEndpoint(opentoscaEndpoint) {
-    if (opentoscaEndpoint !== null && opentoscaEndpoint !== undefined) {
-        config.opentoscaEndpoint = opentoscaEndpoint.replace(/\/$/, '');
-    }
-}
-
-/**
- * Get the endpoint of the configured Winery
- *
- * @return {string} the currently specified endpoint of the Winery
- */
-export function getWineryEndpoint() {
-    if (config.wineryEndpoint === undefined) {
-        setWineryEndpoint(
-            getPluginConfig('quantme').wineryEndpoint
-            || defaultConfig.wineryEndpoint);
-    }
-    return config.wineryEndpoint;
-}
-
-/**
- * Set the endpoint of the Winery
- *
- * @param wineryEndpoint the endpoint of the Winery
- */
-export function setWineryEndpoint(wineryEndpoint) {
-    if (wineryEndpoint !== null && wineryEndpoint !== undefined) {
-        config.wineryEndpoint = wineryEndpoint.replace(/\/$/, '');
-    }
-}
-
-/**
  * Get the local path to the folder in the repository containing the QRMs
  *
  * @return {string} the specified repository path
@@ -199,6 +149,31 @@ export function getQRMRepositoryUserName() {
 export function setQRMUserName(userName) {
     if (userName !== null && userName !== undefined) {
         config.githubUsername = userName;
+    }
+}
+
+/**
+ * Get the GitHub token used to access the QRM repository
+ *
+ * @return {string} the specified username
+ */
+export function getGithubToken() {
+    if (config.githubToken === undefined) {
+        setGithubToken(
+            getPluginConfig('quantme').githubToken
+            || defaultConfig.githubToken);
+    }
+    return config.githubToken;
+}
+
+/**
+ * Set the GitHub token used to access the QRM repository
+ *
+ * @param githubToken the username
+ */
+export function setGithubToken(githubToken) {
+    if (githubToken !== null && githubToken !== undefined) {
+        config.githubToken = githubToken;
     }
 }
 
