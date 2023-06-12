@@ -192,6 +192,11 @@ export class QuantumWorkflowModeler extends HTMLElement {
 
             isCollapsed = !isCollapsed;
         });
+
+        const wizardDiv = document.createElement('div');
+        wizardDiv.id = "wizardDiv";
+        maindiv.appendChild(wizardDiv);
+
     }
 
     /**
