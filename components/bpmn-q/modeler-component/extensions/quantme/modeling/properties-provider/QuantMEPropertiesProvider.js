@@ -15,8 +15,6 @@ import {
     VariationalQuantumAlgorithmTaskEntries,
     WarmStartingTaskEntries
 } from "./QuantMETaskProperties";
-import {Group} from "@bpmn-io/properties-panel";
-import {getWineryEndpoint} from '../../framework-config/config-manager';
 import * as configConsts from '../../../../editor/configurations/Constants';
 import { instance as dataObjectConfigs } from '../../configurations/DataObjectConfigurations';
 import ConfigurationsProperties from '../../../../editor/configurations/ConfigurationsProperties';
