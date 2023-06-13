@@ -25,7 +25,7 @@ export function ArtifactUpload(props) {
         id: 'deployment-data-button',
         text: translate('Deployment Data'),
         description: 'ArtifactWizard',
-        style: { width: '200px', height: '60px', marginLeft: '12px'},
+        style: { padding: '3px 6px 2px',  margin: '2px 32px 6px 12px'},
         className: "qwm-properties-btn",
         children: 'Artifact Wizard',
         onClick,

@@ -1,0 +1,24 @@
+.tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .tab.active {
+    border-bottom: none;
+    background-color: #f9f9f9;
+  }
+
+  .tabButtonsContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    overflow: auto;
+    min-width: 120px;
+    max-height: 263px;
+    direction: rtl;
+}

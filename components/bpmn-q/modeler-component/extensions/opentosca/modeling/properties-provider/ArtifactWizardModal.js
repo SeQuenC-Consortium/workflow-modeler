@@ -12,7 +12,8 @@
 /* eslint-disable no-unused-vars */
 import React, { useState }  from 'react';
 import Modal from '../../../../editor/ui/modal/Modal';
-import '../../../../editor/config/config-modal.css'
+import './artifact-modal.css'
+import '../../../../editor/config/config-modal.css';
 
 
 // polyfill upcoming structural components
@@ -31,6 +32,7 @@ const Footer = Modal.Footer || (({children}) => <div>{children}</div>);
 export default function ArtifactWizardModal({onClose}) {
     const [uploadFile, setUploadFile] = useState(null);
     const [textInput, setTextInput] = useState('');
+    const [selectedTab, setSelectedTab] = useState("docker");
 
     const onSubmit = () => {
         // Process the uploaded file or text input here
@@ -46,39 +48,61 @@ export default function ArtifactWizardModal({onClose}) {
             <Title>Artifact Wizard</Title>
         
             <Body>
-                <div className="qwm-spaceAbove">
-                    <h3>Artifact Upload</h3>
-                    <table>
-                        <tbody>
-                        <tr className="spaceUnder">
-                            <td align="right">Upload Artifact:</td>
-                            <td align="left">
-                            <input
-                                type="file"
-                                id="fileUpload"
-                                onChange={(e) => setUploadFile(e.target.files[0])}
-                            />
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <h3>Reference Docker Image</h3>
-                    <table>
-                        <tbody>
-                        <tr className="spaceUnder">
-                            <td align="right">Image ID:</td>
-                            <td align="left">
-                            <input
-                                type="string"
-                                id="textInput"
-                                value={textInput}
-                                onChange={(e) => setTextInput(e.target.value)}
-                            />
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+              <div className="qwm-spaceAbove">
+                <div className="tabButtonsContainer ">
+                  <div
+                    className={`tab ${selectedTab === "artifact" ? "active" : ""}`}
+                    onClick={() => setSelectedTab("artifact")}
+                  >
+                    Local File
+                  </div>
+                  <div
+                    className={`tab ${selectedTab === "docker" ? "active" : ""}`}
+                    onClick={() => setSelectedTab("docker")}
+                  >
+                    Docker Image
+                  </div>
                 </div>
+
+                {selectedTab === "artifact" && (
+                  <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""}`}> 
+                    <table>
+                      <tbody>
+                        <tr className="spaceUnder">
+                          <td align="right">Upload Artifact:</td>
+                          <td align="left">
+                            <input
+                              type="file"
+                              id="fileUpload"
+                              onChange={(e) => setUploadFile(e.target.files[0])}
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {selectedTab === "docker" && (
+                  <div className={`tab-content ${selectedTab === "docker" ? "active" : ""}`}>
+                    <table>
+                      <tbody>
+                        <tr className="spaceUnder">
+                          <td align="right">Image ID:</td>
+                          <td align="left">
+                            <input
+                              type="string"
+                              id="textInput"
+                              value={textInput}
+                              onChange={(e) => setTextInput(e.target.value)}
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
           </Body>
     
           <Footer>
