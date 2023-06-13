@@ -22,3 +22,11 @@
     max-height: 263px;
     direction: rtl;
 }
+
+.file-input-container {
+    position: relative;
+    width: 100%;
+    overflow: auto;
+    text-overflow: clip;
+    white-space: nowrap;
+  }

@@ -71,10 +71,10 @@ export default function ArtifactWizardModal({onClose}) {
                         <tr className="spaceUnder">
                           <td align="right">Upload Artifact:</td>
                           <td align="left">
-                            <input
+                            <input className="file-input-container"
                               type="file"
                               id="fileUpload"
-                              onChange={(e) => setUploadFile(e.target.files[0])}
+                              onChange={(e) => setUploadFile(new Blob([e.target.files[0]], { type: e.target.files[0].type}))}
                             />
                           </td>
                         </tr>
