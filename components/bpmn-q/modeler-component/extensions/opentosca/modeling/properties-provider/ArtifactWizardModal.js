@@ -10,16 +10,16 @@
  */
 
 /* eslint-disable no-unused-vars */
-import React, { useState }  from 'react';
+import React, {useState} from 'react';
 import Modal from '../../../../editor/ui/modal/Modal';
-import './artifact-modal.css'
+import './artifact-modal.css';
 import '../../../../editor/config/config-modal.css';
 
 
 // polyfill upcoming structural components
-const Title = Modal.Title
-const Body = Modal.Body
-const Footer = Modal.Footer
+const Title = Modal.Title;
+const Body = Modal.Body;
+const Footer = Modal.Footer;
 
 /**
  * Configuration modal of the editor which displays a set of given configTabs. used to display customized tabs of the
@@ -38,83 +38,67 @@ export default function ArtifactWizardModal({onClose}) {
         // Process the uploaded file or text input here
         console.log('Uploaded file:', uploadFile);
         console.log('Text input:', textInput);
-    
+
         // Call close callback
         onClose();
-      };
+    };
 
     return (
         <Modal onClose={onClose}>
             <Title>Artifact Wizard</Title>
-        
+
             <Body>
-              <div className="qwm-spaceAbove">
-                <div className="tabButtonsContainer ">
-                  <div
-                    className={`tab ${selectedTab === "artifact" ? "active" : ""}`}
-                    onClick={() => setSelectedTab("artifact")}
-                  >
-                    Local File
-                  </div>
-                  <div
-                    className={`tab ${selectedTab === "docker" ? "active" : ""}`}
-                    onClick={() => setSelectedTab("docker")}
-                  >
-                    Docker Image
-                  </div>
-                </div>
+                <div className="qwm-spaceAbove">
+                    <div className="tabButtonsContainer ">
+                        <div
+                            className={`tab ${selectedTab === "artifact" ? "active" : ""}`}
+                            onClick={() => setSelectedTab("artifact")}
+                        >
+                            Local File
+                        </div>
+                        <div
+                            className={`tab ${selectedTab === "docker" ? "active" : ""}`}
+                            onClick={() => setSelectedTab("docker")}
+                        >
+                            Docker Image
+                        </div>
+                    </div>
 
-                {selectedTab === "artifact" && (
-                  <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""}`}> 
-                    <table>
-                      <tbody>
-                        <tr className="spaceUnder">
-                          <td align="right">Upload Artifact:</td>
-                          <td align="left">
+                    {selectedTab === "artifact" && (
+                        <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""} wizard-tab-content`}>
+                            <label>Upload Artifact:</label>
                             <input className="file-input-container"
-                              type="file"
-                              id="fileUpload"
-                              onChange={(e) => setUploadFile(e.target.files[0])}
+                                   type="file"
+                                   id="fileUpload"
+                                   onChange={(e) => setUploadFile(e.target.files[0])}
                             />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        </div>
+                    )}
 
-                {selectedTab === "docker" && (
-                  <div className={`tab-content ${selectedTab === "docker" ? "active" : ""}`}>
-                    <table>
-                      <tbody>
-                        <tr className="spaceUnder">
-                          <td align="right">Image ID:</td>
-                          <td align="left">
+                    {selectedTab === "docker" && (
+                        <div className={`tab-content ${selectedTab === "docker" ? "active" : ""} wizard-tab-content`}>
+                            <label>Image ID:</label>
                             <input
-                              type="string"
-                              id="textInput"
-                              value={textInput}
-                              onChange={(e) => setTextInput(e.target.value)}
+                                type="string"
+                                className="dockerimage-input"
+                                value={textInput}
+                                onChange={(e) => setTextInput(e.target.value)}
                             />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-          </Body>
-    
-          <Footer>
-            <div id="wizardFormButtons">
-              <button type="button" className="qwm-btn qwm-btn-primary" form="configForm" onClick={onSubmit}>
-                Confirm
-              </button>
-              <button type="button" className="qwm-btn qwm-btn-secondary" onClick={onClose}>
-                Cancel
-              </button>
-            </div>
-          </Footer>
+                        </div>
+                    )}
+                </div>
+            </Body>
+
+            <Footer>
+                <div id="wizardFormButtons">
+                    <button type="button" className="qwm-btn qwm-btn-primary" form="configForm" onClick={onSubmit}>
+                        Create
+                    </button>
+                    <button type="button" className="qwm-btn qwm-btn-secondary" onClick={onClose}>
+                        Cancel
+                    </button>
+                </div>
+            </Footer>
         </Modal>
-      );
-    }
+    );
+}

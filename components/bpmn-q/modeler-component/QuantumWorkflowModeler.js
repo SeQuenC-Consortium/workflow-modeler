@@ -83,6 +83,7 @@ export class QuantumWorkflowModeler extends HTMLElement {
               <div id="main-div" style="display: flex; flex: 1;">
                 <div id="canvas" style="width: 100%"></div>
                 <div id="properties" style="overflow: auto; width:350px; max-height: 93.5vh; background: #f8f8f8;"></div>
+                <div id="wizardDiv"></div>
               </div>
               <div id="qwm-notification-container"></div>
             </div>`;
@@ -192,11 +193,6 @@ export class QuantumWorkflowModeler extends HTMLElement {
 
             isCollapsed = !isCollapsed;
         });
-
-        const wizardDiv = document.createElement('div');
-        wizardDiv.id = "wizardDiv";
-        maindiv.appendChild(wizardDiv);
-
     }
 
     /**
