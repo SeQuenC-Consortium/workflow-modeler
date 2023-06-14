@@ -17,9 +17,9 @@ import '../../../../editor/config/config-modal.css';
 
 
 // polyfill upcoming structural components
-const Title = Modal.Title || (({children}) => <h2>{children}</h2>);
-const Body = Modal.Body || (({children}) => <div>{children}</div>);
-const Footer = Modal.Footer || (({children}) => <div>{children}</div>);
+const Title = Modal.Title
+const Body = Modal.Body
+const Footer = Modal.Footer
 
 /**
  * Configuration modal of the editor which displays a set of given configTabs. used to display customized tabs of the
@@ -74,7 +74,7 @@ export default function ArtifactWizardModal({onClose}) {
                             <input className="file-input-container"
                               type="file"
                               id="fileUpload"
-                              onChange={(e) => setUploadFile(new Blob([e.target.files[0]], { type: e.target.files[0].type}))}
+                              onChange={(e) => setUploadFile(e.target.files[0])}
                             />
                           </td>
                         </tr>

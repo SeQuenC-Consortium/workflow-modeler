@@ -4,6 +4,7 @@ import React from 'react';
 import ArtifactWizardModal from './ArtifactWizardModal';
 import { createRoot } from 'react-dom/client';
 import { useState } from 'react';
+import './artifact-modal.css'
 
 /**
  * Entry to display the button which opens the Artifact Wizard, a dialog which allows to upload 
@@ -25,8 +26,7 @@ export function ArtifactUpload(props) {
         id: 'deployment-data-button',
         text: translate('Deployment Data'),
         description: 'ArtifactWizard',
-        style: { padding: '3px 6px 2px',  margin: '2px 32px 6px 12px'},
-        className: "qwm-properties-btn",
+        className: "wizard-button",
         children: 'Artifact Wizard',
         onClick,
     });
@@ -49,7 +49,3 @@ function Modal() {
       </div>
     );
   }
-
-
-
-    
