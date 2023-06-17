@@ -9,15 +9,13 @@ import './artifact-modal.css';
 /**
  * Entry to display the button which opens the Artifact Wizard, a dialog which allows to upload
  */
-export function ArtifactUpload(props) {
-    const {element} = props;
+export function ArtifactUpload({element, wineryEndpoint}) {
     const translate = useService('translate');
-
     const onClick = () => {
         // render config button and pop-up menu
         console.log("Button Clicked");
         const root = createRoot(document.getElementById("wizardDiv"));
-        root.render(<Modal/>);
+        root.render(<Modal wineryEndpoint={wineryEndpoint}/>);
     };
 
     return HeaderButton({
@@ -31,8 +29,9 @@ export function ArtifactUpload(props) {
     });
 }
 
-function Modal() {
+function Modal(props) {
     const [showModal, setShowModal] = useState(true);
+    const {wineryEndpoint} = props;
 
     function handleWizardClosed() {
         setShowModal(false);
@@ -41,7 +40,7 @@ function Modal() {
     return (
         <div>
             {showModal && (
-                <ArtifactWizardModal onClose={handleWizardClosed}/>
+                <ArtifactWizardModal onClose={handleWizardClosed} wineryEndpoint={wineryEndpoint}/>
             )}
         </div>
     );

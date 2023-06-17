@@ -21,6 +21,8 @@ const Title = Modal.Title;
 const Body = Modal.Body;
 const Footer = Modal.Footer;
 
+
+const jquery = require('jquery');
 /**
  * Configuration modal of the editor which displays a set of given configTabs. used to display customized tabs of the
  * plugins to allow them the configurations of their plugin configurations during runtime.
@@ -29,10 +31,41 @@ const Footer = Modal.Footer;
  * @returns {JSX.Element} The modal as React component
  * @constructor
  */
-export default function ArtifactWizardModal({onClose}) {
+export default function ArtifactWizardModal(props) {
     const [uploadFile, setUploadFile] = useState(null);
     const [textInput, setTextInput] = useState('');
-    const [selectedTab, setSelectedTab] = useState("docker");
+    const [selectedTab, setSelectedTab] = useState("artifact");
+    const [selectedOption, setSelectedOption] = useState("");
+    const [options, setOptions] = useState([]);
+    const [artifactTypes, setArtifactTypes] = useState([]);
+    const [acceptTypes, setAcceptTypes] = useState('');
+    const {onClose, wineryEndpoint} = props;
+
+    async function updateArtifactSelect() {
+      jquery.ajax({
+          url: wineryEndpoint + "/artifacttypes/?includeVersions=true",
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          success: function(response) {
+            var newOptions = [];
+            for (var i = 0; i < response.length; i++) {
+              if (response[i].name.includes("WAR") || response[i].name.includes("PythonArchive")) {
+                newOptions.push(<ArtifactSelectItem value={response[i].id} name={response[i].name}/>); // Add the option to the select element
+              }
+              setOptions(newOptions);
+              setArtifactTypes(response);
+            }
+          },
+      });
+  }
+
+  const allowedFileTypes = {
+    zip: '.zip',
+    war: '.war',
+  };
+
 
     const onSubmit = () => {
         // Process the uploaded file or text input here
@@ -42,6 +75,20 @@ export default function ArtifactWizardModal({onClose}) {
         // Call close callback
         onClose();
     };
+
+    const handleOptionChange = (e) => {
+      setSelectedOption(e.target.value);
+      if (e.target.value.includes("WAR")) {
+        setAcceptTypes(allowedFileTypes.war);
+      } else if (e.target.value.includes("PythonArchive")) {
+        setAcceptTypes(allowedFileTypes.zip);
+      }
+    };
+
+    const isOptionSelected = selectedOption !== "";
+
+    updateArtifactSelect();
+    
 
     return (
         <Modal onClose={onClose}>
@@ -66,15 +113,31 @@ export default function ArtifactWizardModal({onClose}) {
 
                     {selectedTab === "artifact" && (
                         <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""} wizard-tab-content`}>
-                            <label>Upload Artifact:</label>
-                            <input className="file-input-container"
-                                   type="file"
-                                   id="fileUpload"
-                                   onChange={(e) => setUploadFile(e.target.files[0])}
-                            />
-                        </div>
+                            <div className='wizard-artifact-div'>
+                              <div className='wizard-artifact-selector'>
+                                <label  className="wizard-properties-panel-label">Select an Option:</label>
+                                <select id= "wizard-artifact-select" value={selectedOption} onChange={handleOptionChange} className="wizard-properties-panel-input">
+                                  <option value="" disabled={isOptionSelected}>-- Select --</option>
+                                  {options}
+                                </select>
+                              </div>
+                              {isOptionSelected && (
+                                <div className="wizard-file-upload">
+                                  <div>
+                                    <label className="wizard-properties-panel-label">{`Upload ${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)}:`}</label>
+                                    <input
+                                      className=".wizard-file-upload-button"
+                                      type="file"
+                                      id="fileUpload"
+                                      accept={acceptTypes}
+                                      onChange={(e) => setUploadFile(e.target.files[0])}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              </div>
+                      </div>
                     )}
-
                     {selectedTab === "docker" && (
                         <div className={`tab-content ${selectedTab === "docker" ? "active" : ""} wizard-tab-content`}>
                             <label>Image ID:</label>
@@ -101,4 +164,11 @@ export default function ArtifactWizardModal({onClose}) {
             </Footer>
         </Modal>
     );
+}
+
+function ArtifactSelectItem(props) {
+  const {value, name} = props;
+  return (
+    <option value={value}>{name}</option>
+  )
 }
