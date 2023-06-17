@@ -65,9 +65,6 @@ module.exports = {
             AWS_RUNTIME_HANDLER_ENDPOINT: 'http://localhost:8890',
             CAMUNDA_ENDPOINT: 'http://localhost:8080/engine-rest',
             DATA_CONFIG: 'http://localhost:8100/data-objects',
-            GITHUB_TOKEN: '',
-            NISQ_ANALYZER_ENDPOINT: 'http://localhost:8098/nisq-analyzer',
-            OPENTOSCA_ENDPOINT: 'http://localhost:1337/csars',
             PROVENANCE_COLLECTION: false,
             DOWNLOAD_FILE_NAME: 'quantum-workflow-model',
             ENABLE_DATA_FLOW_PLUGIN: true,
@@ -92,7 +89,7 @@ module.exports = {
             UPLOAD_FILE_NAME: 'workflow',
             UPLOAD_GITHUB_REPO: '',
             UPLOAD_GITHUB_USER: '',
-            WINERY_ENDPOINT: 'http://localhost:8081/winery'
+            WINERY_ENDPOINT: 'http://localhost:8080/winery'
         })
     ],
     mode: 'development',
