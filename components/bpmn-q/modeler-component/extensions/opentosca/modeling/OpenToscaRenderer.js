@@ -1,11 +1,6 @@
 import {
-  black,
-  getRoundRectPath, getStrokeColor
-} from 'bpmn-js/lib/draw/BpmnRenderUtil';
-
-import {
-  is,
-} from 'bpmn-js/lib/util/ModelUtil';
+  connectRectangles
+} from 'diagram-js/lib/layout/ManhattanLayout';
 
 import {
   createLine,
@@ -17,70 +12,61 @@ import buttonIcon from 'raw-loader!../resources/show-deployment-button.svg';
 import { drawTaskSVG } from '../../../editor/util/RenderUtilities';
 import * as config from '../framework-config/config-manager';
 import NotificationHandler from '../../../editor/ui/notifications/NotificationHandler';
-import { append as svgAppend, attr as svgAttr, create as svgCreate, select } from 'tiny-svg';
+import { append as svgAppend, attr as svgAttr, create as svgCreate, select, prepend as svgPrepend } from 'tiny-svg';
+import { query as domQuery } from 'min-dom';
 
 const HIGH_PRIORITY = 14001;
-const TASK_BORDER_RADIUS = 2;
 const SERVICE_TASK_TYPE = 'bpmn:ServiceTask';
-const NODE_TEMPLATE_TYPE = 'opentosca:NodeTemplate';
-const RELATIONSHIP_TEMPLATE_TYPE = 'opentosca:RelationshipTemplate';
 const DEPLOYMENT_GROUP_ID = 'deployment';
+const DEPLOYMENT_REL_MARKER_ID = 'deployment-rel';
+
+const NODE_WIDTH = 100;
+const NODE_HEIGHT = 60;
 
 export default class OpenToscaRenderer extends BpmnRenderer {
   constructor (config, eventBus, styles, pathMap, canvas, textRenderer) {
     super(config, eventBus, styles, pathMap, canvas, textRenderer, HIGH_PRIORITY);
+    this.styles = styles;
+    this.textRenderer = textRenderer;
 
-    // define render functions for planqk extension elements
     this.openToscaHandlers = {
       [SERVICE_TASK_TYPE]: function (self, parentGfx, element) {
-        const task = self.renderer('bpmn:Task')(parentGfx, element);
+        const task = self.renderer('bpmn:ServiceTask')(parentGfx, element);
         self.maybeAddShowDeploymentModelButton(parentGfx, element);
         return task;
-      },
-      [NODE_TEMPLATE_TYPE]: function (self, parentGfx, element) {
-        const groupDef = svgCreate('g');
-        svgAttr(groupDef, { transform: `matrix(1, 0, 0, 1, ${element.x}, ${element.y})` });
-        const rect = svgCreate('rect', {
-          width: element.width,
-          height: element.height,
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          stroke: '#777777',
-          strokeWidth: 2,
-          strokeDasharray: 4,
-          fill: '#DDDDDD'
-        });
-
-        svgAppend(groupDef, rect);
-
-        const text = textRenderer.createText(element.name, {
-          box: {
-            width: element.width,
-            height: element.height,
-          },
-          align: 'center-middle'
-        });
-        svgAppend(groupDef, text);
-        parentGfx.append(groupDef);
-      },
-      [RELATIONSHIP_TEMPLATE_TYPE]: function (self, parentGfx, element) {
-        const line = createLine(element.waypoints, styles.computeStyle({}, ['no-fill'], {
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          stroke: '#777777',
-          strokeWidth: 2,
-          strokeDasharray: 4
-        }), 5);
-        parentGfx.prepend(line);
       }
     };
+    this.addMarkerDefinition(canvas);
   }
 
-  drawRelationshipTemplate (parentGfx, element) {
-    super.drawConnectionSegments(parentGfx, element.waypoints, {
-      markerEnd: super.marker('sequenceflow-end', '#000000', '#000000'),
-      stroke: '#000000'
+  addMarkerDefinition(canvas) {
+    const marker = svgCreate('marker', {
+      id: DEPLOYMENT_REL_MARKER_ID,
+      viewBox: '0 0 8 8',
+      refX: 8,
+      refY: 4,
+      markerWidth: 8,
+      markerHeight: 8,
+      orient: 'auto'
     });
+    svgAppend(marker, svgCreate('path', {
+      d: 'M 0 0 L 8 4 L 0 8',
+      ...this.styles.computeStyle({}, ['no-fill'], {
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        stroke: '#777777',
+        strokeWidth: 1,
+        strokeDasharray: 2
+      })
+    }));
+
+    let defs = domQuery('defs', canvas._svg);
+    if (!defs) {
+      defs = svgCreate('defs');
+
+      svgPrepend(canvas._svg, defs);
+    }
+    svgAppend(defs, marker);
   }
 
   maybeAddShowDeploymentModelButton (parentGfx, element) {
@@ -145,30 +131,63 @@ export default class OpenToscaRenderer extends BpmnRenderer {
         x: parseInt(nodeTemplate.x) - xSubtract,
         y: parseInt(nodeTemplate.y) - ySubtract,
       };
-      this.drawShape(groupDef, {
-        type: NODE_TEMPLATE_TYPE,
-        name: nodeTemplate.name,
-        properties: nodeTemplate.properties,
-        width: 90,
-        height: 60,
-        ...position
-      });
+
       positions.set(nodeTemplate.id, position);
+      this.drawNodeTemplate(groupDef, nodeTemplate, position);
     }
 
     for (let relationshipTemplate of relationshipTemplates) {
       const start = positions.get(relationshipTemplate.sourceElement.ref);
       const end = positions.get(relationshipTemplate.targetElement.ref);
-      const center = ({ x, y }) => ({ x: x + 45, y: y + 30 });
-
-      this.drawConnection(groupDef, {
-        type: RELATIONSHIP_TEMPLATE_TYPE,
-        waypoints: [
-          center(start),
-          center(end)
-        ]
-      });
+      this.drawRelationship(groupDef, start, end);
     }
+  }
+
+  drawRelationship (parentGfx, start, end) {
+    const line = createLine(connectRectangles({
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+      ...start
+    }, {
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+      ...end
+    }), this.styles.computeStyle({}, ['no-fill'], {
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      stroke: '#777777',
+      strokeWidth: 2,
+      strokeDasharray: 4,
+      markerEnd: `url(#${DEPLOYMENT_REL_MARKER_ID})`
+    }), 5);
+    parentGfx.prepend(line);
+  }
+
+  drawNodeTemplate (parentGfx, nodeTemplate, position) {
+    const groupDef = svgCreate('g');
+    svgAttr(groupDef, { transform: `matrix(1, 0, 0, 1, ${position.x}, ${position.y})` });
+    const rect = svgCreate('rect', {
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      stroke: '#777777',
+      strokeWidth: 2,
+      strokeDasharray: 4,
+      fill: '#DDDDDD'
+    });
+
+    svgAppend(groupDef, rect);
+
+    const text = this.textRenderer.createText(nodeTemplate.name, {
+      box: {
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+      },
+      align: 'center-middle'
+    });
+    svgAppend(groupDef, text);
+    parentGfx.append(groupDef);
   }
 
   renderer (type) {
@@ -186,22 +205,6 @@ export default class OpenToscaRenderer extends BpmnRenderer {
       return h(this, parentNode, element);
     }
     return super.drawShape(parentNode, element);
-  }
-
-  drawConnection (parentNode, element) {
-    if (element.type in this.openToscaHandlers) {
-      const h = this.openToscaHandlers[element.type];
-      return h(this, parentNode, element);
-    }
-    return super.drawConnection(parentNode, element);
-  }
-
-  getShapePath (shape) {
-    if (is(shape, SERVICE_TASK_TYPE)) {
-      return getRoundRectPath(shape, TASK_BORDER_RADIUS);
-    }
-
-    return super.getShapePath(shape);
   }
 }
 
