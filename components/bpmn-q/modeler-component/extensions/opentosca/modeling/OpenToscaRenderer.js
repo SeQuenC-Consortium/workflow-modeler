@@ -1,19 +1,20 @@
 import {
-  connectRectangles
+    connectRectangles
 } from 'diagram-js/lib/layout/ManhattanLayout';
 
 import {
-  createLine,
+    createLine,
 } from 'diagram-js/lib/util/RenderUtil';
 
 import BpmnRenderer from 'bpmn-js/lib/draw/BpmnRenderer';
 
 import buttonIcon from 'raw-loader!../resources/show-deployment-button.svg';
-import { drawTaskSVG } from '../../../editor/util/RenderUtilities';
+import {drawTaskSVG} from '../../../editor/util/RenderUtilities';
 import * as config from '../framework-config/config-manager';
 import NotificationHandler from '../../../editor/ui/notifications/NotificationHandler';
-import { append as svgAppend, attr as svgAttr, create as svgCreate, select, prepend as svgPrepend } from 'tiny-svg';
-import { query as domQuery } from 'min-dom';
+import {append as svgAppend, attr as svgAttr, create as svgCreate, select, prepend as svgPrepend} from 'tiny-svg';
+import {query as domQuery} from 'min-dom';
+import {loadTopology} from "../deployment/OpenTOSCAUtils";
 
 const HIGH_PRIORITY = 14001;
 const SERVICE_TASK_TYPE = 'bpmn:ServiceTask';
@@ -24,197 +25,194 @@ const NODE_WIDTH = 100;
 const NODE_HEIGHT = 60;
 
 export default class OpenToscaRenderer extends BpmnRenderer {
-  constructor (config, eventBus, styles, pathMap, canvas, textRenderer) {
-    super(config, eventBus, styles, pathMap, canvas, textRenderer, HIGH_PRIORITY);
-    this.styles = styles;
-    this.textRenderer = textRenderer;
+    constructor(config, eventBus, styles, pathMap, canvas, textRenderer) {
+        super(config, eventBus, styles, pathMap, canvas, textRenderer, HIGH_PRIORITY);
+        this.styles = styles;
+        this.textRenderer = textRenderer;
 
-    this.openToscaHandlers = {
-      [SERVICE_TASK_TYPE]: function (self, parentGfx, element) {
-        const task = self.renderer('bpmn:ServiceTask')(parentGfx, element);
-        self.maybeAddShowDeploymentModelButton(parentGfx, element);
-        return task;
-      }
-    };
-    this.addMarkerDefinition(canvas);
-  }
-
-  addMarkerDefinition(canvas) {
-    const marker = svgCreate('marker', {
-      id: DEPLOYMENT_REL_MARKER_ID,
-      viewBox: '0 0 8 8',
-      refX: 8,
-      refY: 4,
-      markerWidth: 8,
-      markerHeight: 8,
-      orient: 'auto'
-    });
-    svgAppend(marker, svgCreate('path', {
-      d: 'M 0 0 L 8 4 L 0 8',
-      ...this.styles.computeStyle({}, ['no-fill'], {
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
-        stroke: '#777777',
-        strokeWidth: 1,
-        strokeDasharray: 2
-      })
-    }));
-
-    let defs = domQuery('defs', canvas._svg);
-    if (!defs) {
-      defs = svgCreate('defs');
-
-      svgPrepend(canvas._svg, defs);
+        this.openToscaHandlers = {
+            [SERVICE_TASK_TYPE]: function (self, parentGfx, element) {
+                const task = self.renderer('bpmn:ServiceTask')(parentGfx, element);
+                self.maybeAddShowDeploymentModelButton(parentGfx, element);
+                return task;
+            }
+        };
+        this.addMarkerDefinition(canvas);
     }
-    svgAppend(defs, marker);
-  }
 
-  maybeAddShowDeploymentModelButton (parentGfx, element) {
-    let deploymentModelUrl = element.businessObject.get('opentosca:deploymentModelUrl');
-    if (!deploymentModelUrl) return;
-    if (deploymentModelUrl.startsWith('{{ wineryEndpoint }}')) {
-      deploymentModelUrl = deploymentModelUrl.replace('{{ wineryEndpoint }}', config.getWineryEndpoint());
-    }
-    console.log('render:', deploymentModelUrl);
-    const button = drawTaskSVG(parentGfx, {
-      transform: 'matrix(0.3, 0, 0, 0.3, 85, 65)',
-      svg: buttonIcon
-    }, null, true);
-    button.style['pointer-events'] = 'all';
-    button.style['cursor'] = 'pointer';
-    button.addEventListener('click', (e) => {
-      element.showDeploymentModel = !element.showDeploymentModel;
-      e.preventDefault();
-      if (element.showDeploymentModel) {
-        this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
-      } else {
-        select(parentGfx, '#' + DEPLOYMENT_GROUP_ID).remove();
-      }
-    });
-    if (element.showDeploymentModel) {
-      this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
-    }
-  }
-
-  async showDeploymentModel (parentGfx, element, deploymentModelUrl) {
-    if (!element.deploymentModelTopology || element.loadedDeploymentModelTopology !== deploymentModelUrl) {
-      try {
-        const topology = await fetch(deploymentModelUrl.replace('?csar', 'topologytemplate'))
-          .then(res => res.json());
-        element.loadedDeploymentModelTopology = deploymentModelUrl;
-        element.deploymentModelTopology = topology;
-      } catch (e) {
-        element.showDeploymentModel = false;
-        console.error(element.showDeploymentModel);
-        NotificationHandler.getInstance().displayNotification({
-          type: 'warning',
-          title: 'Could not load topology',
-          content: 'An unexpected error occurred during loading the deployments models topology.',
-          duration: 2000
+    addMarkerDefinition(canvas) {
+        const marker = svgCreate('marker', {
+            id: DEPLOYMENT_REL_MARKER_ID,
+            viewBox: '0 0 8 8',
+            refX: 8,
+            refY: 4,
+            markerWidth: 8,
+            markerHeight: 8,
+            orient: 'auto'
         });
-      }
-    }
-    const groupDef = svgCreate('g', { id: DEPLOYMENT_GROUP_ID });
-    parentGfx.append(groupDef);
+        svgAppend(marker, svgCreate('path', {
+            d: 'M 0 0 L 8 4 L 0 8',
+            ...this.styles.computeStyle({}, ['no-fill'], {
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round',
+                stroke: '#777777',
+                strokeWidth: 1,
+                strokeDasharray: 2
+            })
+        }));
 
-    const { nodeTemplates, relationshipTemplates } = element.deploymentModelTopology;
+        let defs = domQuery('defs', canvas._svg);
+        if (!defs) {
+            defs = svgCreate('defs');
 
-    let ySubtract = Math.min(...nodeTemplates.map(({ y }) => y)) - 80;
-    // Center horizontal around
-    let xSubtract = Math.min(...nodeTemplates.map(({ x }) => x));
-    const xMax = Math.max(...nodeTemplates.map(({ x }) => x));
-    xSubtract = xSubtract + (xMax - xSubtract) / 2;
-
-    const positions = new Map();
-    for (let nodeTemplate of nodeTemplates) {
-      const position = {
-        x: parseInt(nodeTemplate.x) - xSubtract,
-        y: parseInt(nodeTemplate.y) - ySubtract,
-      };
-
-      positions.set(nodeTemplate.id, position);
-      this.drawNodeTemplate(groupDef, nodeTemplate, position);
+            svgPrepend(canvas._svg, defs);
+        }
+        svgAppend(defs, marker);
     }
 
-    for (let relationshipTemplate of relationshipTemplates) {
-      const start = positions.get(relationshipTemplate.sourceElement.ref);
-      const end = positions.get(relationshipTemplate.targetElement.ref);
-      this.drawRelationship(groupDef, start, end);
+    maybeAddShowDeploymentModelButton(parentGfx, element) {
+        let deploymentModelUrl = element.businessObject.get('opentosca:deploymentModelUrl');
+        if (!deploymentModelUrl) return;
+
+        const button = drawTaskSVG(parentGfx, {
+            transform: 'matrix(0.3, 0, 0, 0.3, 85, 65)',
+            svg: buttonIcon
+        }, null, true);
+        button.style['pointer-events'] = 'all';
+        button.style['cursor'] = 'pointer';
+        button.addEventListener('click', (e) => {
+            element.showDeploymentModel = !element.showDeploymentModel;
+            e.preventDefault();
+            if (element.showDeploymentModel) {
+                this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
+            } else {
+                select(parentGfx, '#' + DEPLOYMENT_GROUP_ID).remove();
+            }
+        });
+        if (element.showDeploymentModel) {
+            this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
+        }
     }
-  }
 
-  drawRelationship (parentGfx, start, end) {
-    const line = createLine(connectRectangles({
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-      ...start
-    }, {
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-      ...end
-    }), this.styles.computeStyle({}, ['no-fill'], {
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      stroke: '#777777',
-      strokeWidth: 2,
-      strokeDasharray: 4,
-      markerEnd: `url(#${DEPLOYMENT_REL_MARKER_ID})`
-    }), 5);
-    parentGfx.prepend(line);
-  }
+    async showDeploymentModel(parentGfx, element, deploymentModelUrl) {
+        if (!element.deploymentModelTopology || element.loadedDeploymentModelTopology !== deploymentModelUrl) {
+            try {
+                const topology = await loadTopology(deploymentModelUrl);
+                element.loadedDeploymentModelTopology = deploymentModelUrl;
+                element.deploymentModelTopology = topology;
+            } catch (e) {
+                element.showDeploymentModel = false;
+                console.error(element.showDeploymentModel);
+                NotificationHandler.getInstance().displayNotification({
+                    type: 'warning',
+                    title: 'Could not load topology',
+                    content: e.message,
+                    duration: 2000
+                });
+            }
+        }
+        const groupDef = svgCreate('g', {id: DEPLOYMENT_GROUP_ID});
+        parentGfx.append(groupDef);
 
-  drawNodeTemplate (parentGfx, nodeTemplate, position) {
-    const groupDef = svgCreate('g');
-    svgAttr(groupDef, { transform: `matrix(1, 0, 0, 1, ${position.x}, ${position.y})` });
-    const rect = svgCreate('rect', {
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      stroke: '#777777',
-      strokeWidth: 2,
-      strokeDasharray: 4,
-      fill: '#DDDDDD'
-    });
+        const {nodeTemplates, relationshipTemplates, topNode} = element.deploymentModelTopology;
 
-    svgAppend(groupDef, rect);
+        let ySubtract = topNode.y;
+        let xSubtract = topNode.x;
 
-    const text = this.textRenderer.createText(nodeTemplate.name, {
-      box: {
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-      },
-      align: 'center-middle'
-    });
-    svgAppend(groupDef, text);
-    parentGfx.append(groupDef);
-  }
+        const positions = new Map();
+        for (let nodeTemplate of nodeTemplates) {
+            const position = {
+                x: (parseInt(nodeTemplate.x) - xSubtract) / 1.4,
+                y: (parseInt(nodeTemplate.y) - ySubtract) / 1.4,
+            };
 
-  renderer (type) {
-    return this.handlers[type];
-  }
+            positions.set(nodeTemplate.id, position);
+            if (nodeTemplate.id !== topNode.id) {
+                this.drawNodeTemplate(groupDef, nodeTemplate, position);
+            }
+        }
 
-  canRender (element) {
-    // only return true if handler for rendering is registered
-    return this.openToscaHandlers[element.type];
-  }
-
-  drawShape (parentNode, element) {
-    if (element.type in this.openToscaHandlers) {
-      const h = this.openToscaHandlers[element.type];
-      return h(this, parentNode, element);
+        for (let relationshipTemplate of relationshipTemplates) {
+            const start = positions.get(relationshipTemplate.sourceElement.ref);
+            const end = positions.get(relationshipTemplate.targetElement.ref);
+            this.drawRelationship(groupDef,
+                start, relationshipTemplate.sourceElement.ref === topNode.id,
+                end, relationshipTemplate.targetElement.ref === topNode.id);
+        }
     }
-    return super.drawShape(parentNode, element);
-  }
+
+    drawRelationship(parentGfx, start, startIsToplevel, end, endIsToplevel) {
+        const line = createLine(connectRectangles({
+            width: NODE_WIDTH,
+            height: startIsToplevel? 80 : NODE_HEIGHT,
+            ...start
+        }, {
+            width: NODE_WIDTH,
+            height:  endIsToplevel? 80 : NODE_HEIGHT,
+            ...end
+        }), this.styles.computeStyle({}, ['no-fill'], {
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            stroke: '#777777',
+            strokeWidth: 2,
+            strokeDasharray: 4,
+            markerEnd: `url(#${DEPLOYMENT_REL_MARKER_ID})`
+        }), 5);
+        parentGfx.prepend(line);
+    }
+
+    drawNodeTemplate(parentGfx, nodeTemplate, position) {
+        const groupDef = svgCreate('g');
+        svgAttr(groupDef, {transform: `matrix(1, 0, 0, 1, ${position.x}, ${position.y})`});
+        const rect = svgCreate('rect', {
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            stroke: '#777777',
+            strokeWidth: 2,
+            strokeDasharray: 4,
+            fill: '#DDDDDD'
+        });
+
+        svgAppend(groupDef, rect);
+
+        const text = this.textRenderer.createText(nodeTemplate.name, {
+            box: {
+                width: NODE_WIDTH,
+                height: NODE_HEIGHT,
+            },
+            align: 'center-middle'
+        });
+        svgAppend(groupDef, text);
+        parentGfx.append(groupDef);
+    }
+
+    renderer(type) {
+        return this.handlers[type];
+    }
+
+    canRender(element) {
+        // only return true if handler for rendering is registered
+        return this.openToscaHandlers[element.type];
+    }
+
+    drawShape(parentNode, element) {
+        if (element.type in this.openToscaHandlers) {
+            const h = this.openToscaHandlers[element.type];
+            return h(this, parentNode, element);
+        }
+        return super.drawShape(parentNode, element);
+    }
 }
 
 OpenToscaRenderer.$inject = [
-  'config',
-  'eventBus',
-  'styles',
-  'pathMap',
-  'canvas',
-  'textRenderer'
+    'config',
+    'eventBus',
+    'styles',
+    'pathMap',
+    'canvas',
+    'textRenderer'
 ];
 
 

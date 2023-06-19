@@ -10,7 +10,7 @@
  */
 
 import {fetch} from 'whatwg-fetch';
-import {performAjax} from '../utilities/Utilities';
+import * as config from "../framework-config/config-manager";
 
 /**
  * Upload the CSAR located at the given URL to the connected OpenTOSCA Container and return the corresponding URL and required input parameters
@@ -222,6 +222,38 @@ export async function createServiceInstance(csar, camundaEngineEndpoint) {
 
     result.success = true;
     return result;
+}
+
+export async function loadTopology(deploymentModelUrl) {
+    console.log(config.getWineryEndpoint())
+    if (deploymentModelUrl.startsWith('{{ wineryEndpoint }}')) {
+        deploymentModelUrl = deploymentModelUrl.replace('{{ wineryEndpoint }}', config.getWineryEndpoint());
+    }
+    let topology;
+    let tags;
+    try {
+        topology = await fetch(deploymentModelUrl.replace('?csar', 'topologytemplate'))
+            .then(res => res.json());
+        tags = await fetch(deploymentModelUrl.replace('?csar', 'tags'))
+            .then(res => res.json());
+
+    } catch (e) {
+        throw new Error('An unexpected error occurred during loading the deployments models topology.');
+    }
+    const topNodeTag = tags.find(tag => tag.name === "top-node");
+    if (!topNodeTag) {
+        throw new Error("No top level node defined.");
+    }
+    const topNodeId = topNodeTag.value;
+    const topNode = topology.nodeTemplates.find(nodeTemplate => nodeTemplate.id === topNodeId);
+    if (!topNode) {
+        throw new Error(`Top level node "${topNodeId}" not found.`);
+    }
+    return {
+        topNode,
+        nodeTemplates: topology.nodeTemplates,
+        relationshipTemplates: topology.relationshipTemplates
+    };
 }
 
 
