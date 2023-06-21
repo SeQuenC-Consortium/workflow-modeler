@@ -15,7 +15,7 @@ export function ArtifactUpload({element, wineryEndpoint}) {
         // render config button and pop-up menu
         console.log("Button Clicked");
         const root = createRoot(document.getElementById("wizardDiv"));
-        root.render(<Modal wineryEndpoint={wineryEndpoint}/>);
+        root.render(<Modal element={element} wineryEndpoint={wineryEndpoint}/>);
     };
 
     return HeaderButton({
@@ -31,7 +31,7 @@ export function ArtifactUpload({element, wineryEndpoint}) {
 
 function Modal(props) {
     const [showModal, setShowModal] = useState(true);
-    const {wineryEndpoint} = props;
+    const {element, wineryEndpoint} = props;
 
     function handleWizardClosed() {
         setShowModal(false);
@@ -40,7 +40,7 @@ function Modal(props) {
     return (
         <div>
             {showModal && (
-                <ArtifactWizardModal onClose={handleWizardClosed} wineryEndpoint={wineryEndpoint}/>
+                <ArtifactWizardModal onClose={handleWizardClosed} element={element} wineryEndpoint={wineryEndpoint}/>
             )}
         </div>
     );

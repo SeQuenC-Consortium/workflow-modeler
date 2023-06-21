@@ -14,6 +14,8 @@ import React, {useState} from 'react';
 import Modal from '../../../../editor/ui/modal/Modal';
 import './artifact-modal.css';
 import '../../../../editor/config/config-modal.css';
+import { createArtifactTemplateWithFile } from '../../winery-manager/winery-handler';
+import { set } from 'min-dash';
 
 
 // polyfill upcoming structural components
@@ -36,10 +38,13 @@ export default function ArtifactWizardModal(props) {
     const [textInput, setTextInput] = useState('');
     const [selectedTab, setSelectedTab] = useState("artifact");
     const [selectedOption, setSelectedOption] = useState("");
+    const [selectedOptionName, setSelectedOptionName] = useState("");
     const [options, setOptions] = useState([]);
     const [artifactTypes, setArtifactTypes] = useState([]);
     const [acceptTypes, setAcceptTypes] = useState('');
-    const {onClose, wineryEndpoint} = props;
+    const {onClose, element, wineryEndpoint} = props;
+
+    console.log(element);
 
     async function updateArtifactSelect() {
       jquery.ajax({
@@ -52,7 +57,7 @@ export default function ArtifactWizardModal(props) {
             var newOptions = [];
             for (var i = 0; i < response.length; i++) {
               if (response[i].name.includes("WAR") || response[i].name.includes("PythonArchive")) {
-                newOptions.push(<ArtifactSelectItem value={response[i].id} name={response[i].name}/>); // Add the option to the select element
+                newOptions.push(<ArtifactSelectItem value={response[i].qName} name={response[i].name}/>); // Add the option to the select element
               }
               setOptions(newOptions);
               setArtifactTypes(response);
@@ -62,7 +67,7 @@ export default function ArtifactWizardModal(props) {
   }
 
   const allowedFileTypes = {
-    zip: '.zip',
+    zip: '.tar.gz',
     war: '.war',
   };
 
@@ -71,13 +76,23 @@ export default function ArtifactWizardModal(props) {
         // Process the uploaded file or text input here
         console.log('Uploaded file:', uploadFile);
         console.log('Text input:', textInput);
+        if (selectedTab === "artifact") {
+          if (uploadFile !== null && selectedOption !== "") {
+            createArtifactTemplateWithFile(element.id + element.businessObject.name + "ArtifactTemplate", selectedOption, uploadFile);
+            onClose();
+          } else {
+            alert("Please select a file!");
+          }
+        }
 
         // Call close callback
-        onClose();
+        
     };
 
     const handleOptionChange = (e) => {
+      console.log(e.target);
       setSelectedOption(e.target.value);
+      setSelectedOptionName(artifactTypes.find(x => x.qName === e.target.value).name);
       if (e.target.value.includes("WAR")) {
         setAcceptTypes(allowedFileTypes.war);
       } else if (e.target.value.includes("PythonArchive")) {
@@ -87,7 +102,9 @@ export default function ArtifactWizardModal(props) {
 
     const isOptionSelected = selectedOption !== "";
 
-    updateArtifactSelect();
+    if (artifactTypes.length === 0) {
+      updateArtifactSelect();
+    }
     
 
     return (
@@ -124,7 +141,7 @@ export default function ArtifactWizardModal(props) {
                               {isOptionSelected && (
                                 <div className="wizard-file-upload">
                                   <div>
-                                    <label className="wizard-properties-panel-label">{`Upload ${selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)}:`}</label>
+                                    <label className="wizard-properties-panel-label">{`Upload ${selectedOptionName.charAt(0).toUpperCase() + selectedOptionName.slice(1)}:`}</label>
                                     <input
                                       className=".wizard-file-upload-button"
                                       type="file"
