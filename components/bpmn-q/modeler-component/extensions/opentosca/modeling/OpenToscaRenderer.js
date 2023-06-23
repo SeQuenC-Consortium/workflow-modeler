@@ -23,6 +23,13 @@ const DEPLOYMENT_REL_MARKER_ID = 'deployment-rel';
 
 const NODE_WIDTH = 100;
 const NODE_HEIGHT = 60;
+const STROKE_STYLE = {
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    stroke: '#777777',
+    strokeWidth: 2,
+    strokeDasharray: 4,
+};
 
 export default class OpenToscaRenderer extends BpmnRenderer {
     constructor(config, eventBus, styles, pathMap, canvas, textRenderer) {
@@ -53,9 +60,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
         svgAppend(marker, svgCreate('path', {
             d: 'M 0 0 L 8 4 L 0 8',
             ...this.styles.computeStyle({}, ['no-fill'], {
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round',
-                stroke: '#777777',
+                ...STROKE_STYLE,
                 strokeWidth: 1,
                 strokeDasharray: 2
             })
@@ -151,11 +156,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
             height:  endIsToplevel? 80 : NODE_HEIGHT,
             ...end
         }), this.styles.computeStyle({}, ['no-fill'], {
-            strokeLinecap: 'round',
-            strokeLinejoin: 'round',
-            stroke: '#777777',
-            strokeWidth: 2,
-            strokeDasharray: 4,
+            ...STROKE_STYLE,
             markerEnd: `url(#${DEPLOYMENT_REL_MARKER_ID})`
         }), 5);
         parentGfx.prepend(line);
@@ -167,12 +168,8 @@ export default class OpenToscaRenderer extends BpmnRenderer {
         const rect = svgCreate('rect', {
             width: NODE_WIDTH,
             height: NODE_HEIGHT,
-            strokeLinecap: 'round',
-            strokeLinejoin: 'round',
-            stroke: '#777777',
-            strokeWidth: 2,
-            strokeDasharray: 4,
-            fill: '#DDDDDD'
+            fill: '#DDDDDD',
+            ...STROKE_STYLE
         });
 
         svgAppend(groupDef, rect);
