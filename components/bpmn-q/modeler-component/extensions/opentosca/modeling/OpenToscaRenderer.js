@@ -8,7 +8,7 @@ import {
 
 import BpmnRenderer from 'bpmn-js/lib/draw/BpmnRenderer';
 
-import buttonIcon from 'raw-loader!../resources/show-deployment-button.svg';
+import buttonIcon from '../resources/show-deployment-button.svg?raw';
 import {drawTaskSVG} from '../../../editor/util/RenderUtilities';
 import * as config from '../framework-config/config-manager';
 import NotificationHandler from '../../../editor/ui/notifications/NotificationHandler';
@@ -100,10 +100,10 @@ export default class OpenToscaRenderer extends BpmnRenderer {
     }
 
     async showDeploymentModel(parentGfx, element, deploymentModelUrl) {
-        if (!element.deploymentModelTopology || element.loadedDeploymentModelTopology !== deploymentModelUrl) {
+        if (!element.deploymentModelTopology || element.loadedDeploymentModelUrl !== deploymentModelUrl) {
             try {
                 const topology = await loadTopology(deploymentModelUrl);
-                element.loadedDeploymentModelTopology = deploymentModelUrl;
+                element.loadedDeploymentModelUrl = deploymentModelUrl;
                 element.deploymentModelTopology = topology;
             } catch (e) {
                 element.showDeploymentModel = false;
@@ -164,7 +164,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
 
     drawNodeTemplate(parentGfx, nodeTemplate, position) {
         const groupDef = svgCreate('g');
-        svgAttr(groupDef, {transform: `matrix(1, 0, 0, 1, ${position.x}, ${position.y})`});
+        svgAttr(groupDef, {transform: `matrix(1, 0, 0, 1, ${position.x.toFixed(2)}, ${position.y.toFixed(2)})`});
         const rect = svgCreate('rect', {
             width: NODE_WIDTH,
             height: NODE_HEIGHT,

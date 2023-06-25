@@ -15,6 +15,7 @@ module.exports = {
         rules: [
             {
                 test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                resourceQuery: { not: [/raw/] },
                 type: 'asset/inline',
             },
             {
@@ -51,6 +52,10 @@ module.exports = {
                 test: /\.bpmn$/,
                 type: "asset/source",
             },
+            {
+                resourceQuery: /raw/,
+                type: 'asset/source',
+            }
         ],
     },
     resolve: {

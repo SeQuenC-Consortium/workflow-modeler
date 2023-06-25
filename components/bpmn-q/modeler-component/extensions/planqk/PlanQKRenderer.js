@@ -41,6 +41,7 @@ export default class PlanQKRenderer extends BpmnRenderer {
     }
 
     canRender(element) {
+
         // only return true if handler for rendering is registered
         return this.planqkHandlers[element.type];
     }

@@ -657,7 +657,7 @@ export function appendElement(type, element, event, bpmnFactory, elementFactory,
 
 /**
  * Replace the given connection by a new one between the same elements but of the given type.
- *drawConnection
+ *
  * @param connectionElement The given connection.
  * @param replacementType The type of the new connection.
  * @param modeling The modeling module of the bpmn-js modeler.
