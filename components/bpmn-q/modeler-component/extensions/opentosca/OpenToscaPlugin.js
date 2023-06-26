@@ -12,7 +12,8 @@ let openToscaModdleExtension = require('./resources/opentosca4bpmn.json');
  * Plugin Object of the OpenTOSCA extension. Used to register the plugin in the plugin handler of the modeler.
  */
 export default {
-    buttons: [<DeploymentPlugin/>],
+    buttons: [
+        <DeploymentPlugin/>],
     configTabs: [
         {
             tabId: 'OpenTOSCAEndpointTab',
