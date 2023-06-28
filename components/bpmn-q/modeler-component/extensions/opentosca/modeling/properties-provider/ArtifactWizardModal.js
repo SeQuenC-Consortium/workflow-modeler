@@ -14,8 +14,9 @@ import React, {useState} from 'react';
 import Modal from '../../../../editor/ui/modal/Modal';
 import './artifact-modal.css';
 import '../../../../editor/config/config-modal.css';
-import { createArtifactTemplateWithFile } from '../../winery-manager/winery-handler';
+import { createArtifactTemplateWithFile, createServiceTemplateWithNodeAndArtifact, getNodeTypeQName, getArtifactTemplateInfo, insertTopNodeTag} from '../../winery-manager/winery-handler';
 import { set } from 'min-dash';
+import NotificationHandler from '../../../../editor/ui/notifications/NotificationHandler';
 
 
 // polyfill upcoming structural components
@@ -71,6 +72,25 @@ export default function ArtifactWizardModal(props) {
     war: '.war',
   };
 
+  async function createServiceTemplate() {
+    const artifactTemplateAddress = await createArtifactTemplateWithFile(element.businessObject.name + "ArtifactTemplate" + "-" + element.id, selectedOption, uploadFile);
+    console.log(artifactTemplateAddress);
+    const artifactTemplateInfo = await getArtifactTemplateInfo(artifactTemplateAddress);
+    console.log(artifactTemplateInfo);
+    const artifactTemplateQName = artifactTemplateInfo.serviceTemplateOrNodeTypeOrNodeTypeImplementation[0].type;
+    console.log(artifactTemplateQName);
+    const nodeTypeQName = await getNodeTypeQName(selectedOption);
+    console.log(nodeTypeQName);
+    const serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(element.businessObject.name + "ServiceTemplate" + "-" + element.id, nodeTypeQName, element.businessObject.name + "Node" + "-" + element.id, artifactTemplateQName, element.businessObject.name + "Artifact" + "-"  + element.id, selectedOption);
+    const number = await insertTopNodeTag(serviceTemplateAddress, nodeTypeQName);
+    NotificationHandler.getInstance().displayNotification({
+      type: 'info',
+      title: 'Service Template Created',
+      content: 'Service Template including Nodetype with attatched Deployment Artifact of chosen type was successfully created.',
+      duration: 4000
+    });
+  }
+
 
     const onSubmit = () => {
         // Process the uploaded file or text input here
@@ -78,10 +98,19 @@ export default function ArtifactWizardModal(props) {
         console.log('Text input:', textInput);
         if (selectedTab === "artifact") {
           if (uploadFile !== null && selectedOption !== "") {
-            createArtifactTemplateWithFile(element.id + element.businessObject.name + "ArtifactTemplate", selectedOption, uploadFile);
+            createServiceTemplate();
             onClose();
           } else {
-            alert("Please select a file!");
+            onClose();
+            setTimeout(function(){
+              NotificationHandler.getInstance().displayNotification({
+                type: 'error',
+                title: 'No file selected!',
+                content: 'Please select a file to create an artifact!',
+                duration: 4000
+              });
+            },300);
+
           }
         }
 
