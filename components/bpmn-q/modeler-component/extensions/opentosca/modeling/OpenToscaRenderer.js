@@ -91,7 +91,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
             if (element.showDeploymentModel) {
                 this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
             } else {
-                select(parentGfx, '#' + DEPLOYMENT_GROUP_ID).remove();
+                this.removeDeploymentModel();
             }
         });
         if (element.showDeploymentModel) {
@@ -107,7 +107,10 @@ export default class OpenToscaRenderer extends BpmnRenderer {
                 element.deploymentModelTopology = topology;
             } catch (e) {
                 element.showDeploymentModel = false;
-                console.error(element.showDeploymentModel);
+                element.loadedDeploymentModelUrl = null;
+                element.deploymentModelTopology = null;
+                this.removeDeploymentModel(parentGfx);
+                console.error(e);
                 NotificationHandler.getInstance().displayNotification({
                     type: 'warning',
                     title: 'Could not load topology',
@@ -121,8 +124,8 @@ export default class OpenToscaRenderer extends BpmnRenderer {
 
         const {nodeTemplates, relationshipTemplates, topNode} = element.deploymentModelTopology;
 
-        let ySubtract = topNode.y;
-        let xSubtract = topNode.x;
+        let ySubtract = parseInt(topNode.y);
+        let xSubtract = parseInt(topNode.x);
 
         const positions = new Map();
         for (let nodeTemplate of nodeTemplates) {
@@ -146,14 +149,21 @@ export default class OpenToscaRenderer extends BpmnRenderer {
         }
     }
 
+    removeDeploymentModel(parentGfx) {
+        const group = select(parentGfx, '#' + DEPLOYMENT_GROUP_ID)
+        if (group) {
+            group.remove();
+        }
+    }
+
     drawRelationship(parentGfx, start, startIsToplevel, end, endIsToplevel) {
         const line = createLine(connectRectangles({
             width: NODE_WIDTH,
-            height: startIsToplevel? 80 : NODE_HEIGHT,
+            height: startIsToplevel ? 80 : NODE_HEIGHT,
             ...start
         }, {
             width: NODE_WIDTH,
-            height:  endIsToplevel? 80 : NODE_HEIGHT,
+            height: endIsToplevel ? 80 : NODE_HEIGHT,
             ...end
         }), this.styles.computeStyle({}, ['no-fill'], {
             ...STROKE_STYLE,

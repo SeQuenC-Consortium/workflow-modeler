@@ -240,15 +240,29 @@ export async function loadTopology(deploymentModelUrl) {
     } catch (e) {
         throw new Error('An unexpected error occurred during loading the deployments models topology.');
     }
+    let topNode;
     const topNodeTag = tags.find(tag => tag.name === "top-node");
-    if (!topNodeTag) {
-        throw new Error("No top level node defined.");
+    if (topNodeTag) {
+        const topNodeId = topNodeTag.value;
+        topNode = topology.nodeTemplates.find(nodeTemplate => nodeTemplate.id === topNodeId);
+        if (!topNode) {
+            throw new Error(`Top level node "${topNodeId}" not found.`);
+        }
+    } else {
+        let nodes = new Map(topology.nodeTemplates.map(nodeTemplate => [nodeTemplate.id, nodeTemplate]));
+        for(let relationship of topology.relationshipTemplates) {
+            if(relationship.name === "HostedOn") {
+                nodes.delete(relationship.targetElement.ref);
+            }
+        }
+        if(nodes.size === 1) {
+            topNode = nodes.values().next().value;
+        }
     }
-    const topNodeId = topNodeTag.value;
-    const topNode = topology.nodeTemplates.find(nodeTemplate => nodeTemplate.id === topNodeId);
     if (!topNode) {
-        throw new Error(`Top level node "${topNodeId}" not found.`);
+        throw new Error("No top level node found.");
     }
+
     return {
         topNode,
         nodeTemplates: topology.nodeTemplates,
