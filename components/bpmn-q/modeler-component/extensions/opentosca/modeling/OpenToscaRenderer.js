@@ -91,7 +91,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
             if (element.showDeploymentModel) {
                 this.showDeploymentModel(parentGfx, element, deploymentModelUrl);
             } else {
-                this.removeDeploymentModel();
+                this.removeDeploymentModel(parentGfx);
             }
         });
         if (element.showDeploymentModel) {
