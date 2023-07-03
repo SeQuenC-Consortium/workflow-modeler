@@ -159,6 +159,7 @@ export default class OpenToscaRenderer extends BpmnRenderer {
                     content: e.message,
                     duration: 2000
                 });
+                return;
             }
         }
         const groupDef = svgCreate('g', {id: DEPLOYMENT_GROUP_ID});
