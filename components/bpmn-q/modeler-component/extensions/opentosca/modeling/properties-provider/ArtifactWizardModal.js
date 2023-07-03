@@ -74,14 +74,11 @@ export default function ArtifactWizardModal(props) {
 
   async function createServiceTemplate() {
     const artifactTemplateAddress = await createArtifactTemplateWithFile(element.businessObject.name + "ArtifactTemplate" + "-" + element.id, selectedOption, uploadFile);
-    console.log(artifactTemplateAddress);
     const artifactTemplateInfo = await getArtifactTemplateInfo(artifactTemplateAddress);
-    console.log(artifactTemplateInfo);
     const artifactTemplateQName = artifactTemplateInfo.serviceTemplateOrNodeTypeOrNodeTypeImplementation[0].type;
-    console.log(artifactTemplateQName);
     const nodeTypeQName = await getNodeTypeQName(selectedOption);
-    console.log(nodeTypeQName);
     const serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(element.businessObject.name + "ServiceTemplate" + "-" + element.id, nodeTypeQName, element.businessObject.name + "Node" + "-" + element.id, artifactTemplateQName, element.businessObject.name + "Artifact" + "-"  + element.id, selectedOption);
+    element.businessObject.deploymentModelUrl = "{{ wineryEndpoint }}/servicetemplates/" + serviceTemplateAddress + "?csar";
     const number = await insertTopNodeTag(serviceTemplateAddress, nodeTypeQName);
     NotificationHandler.getInstance().displayNotification({
       type: 'info',
@@ -89,6 +86,12 @@ export default function ArtifactWizardModal(props) {
       content: 'Service Template including Nodetype with attatched Deployment Artifact of chosen type was successfully created.',
       duration: 4000
     });
+    document.getElementById("properties").style.display = 'none';
+    setTimeout(function(){
+      document.getElementById("properties").style.display = 'block';
+    },1);
+    
+
   }
 
 
