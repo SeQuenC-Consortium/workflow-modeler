@@ -16,17 +16,25 @@ export function ArtifactUpload(props) {
     const onClick = () => {
         // render config button and pop-up menu
         console.log("Button Clicked");
-        const root = createRoot(document.getElementById("wizardDiv"));
+        const mainDiv = document.getElementById("main-div");
+        const existingDiv = document.getElementById("wizard-div");
+        if (existingDiv) {
+            existingDiv.parentNode.removeChild(existingDiv);
+          }
+        const wizardDiv = document.createElement("div");
+        wizardDiv.id = "wizard-div";
+        mainDiv.appendChild(wizardDiv);
+        const root = createRoot(document.getElementById("wizard-div"));
         root.render(<Modal/>);
     };
 
     return HeaderButton({
         element,
-        id: 'deployment-data-button',
-        text: translate('Deployment Data'),
-        description: 'ArtifactWizard',
-        className: "wizard-button",
-        children: 'Artifact Wizard',
+        id: 'artifact-upload-button',
+        text: translate('Upload Artifact'),
+        description: translate('Upload Artifact'),
+        className: "qwm-artifact-upload-btn",
+        children: translate('Upload Artifact'),
         onClick,
     });
 }
