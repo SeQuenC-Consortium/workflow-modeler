@@ -23,6 +23,7 @@ const DEPLOYMENT_REL_MARKER_ID = 'deployment-rel';
 
 const NODE_WIDTH = 100;
 const NODE_HEIGHT = 60;
+const NODE_SHIFT_MARGIN = 5;
 const STROKE_STYLE = {
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
@@ -143,13 +144,11 @@ export default class OpenToscaRenderer extends BpmnRenderer {
     }
 
     async showDeploymentModel(parentGfx, element, deploymentModelUrl) {
-        let newlyLoaded = false;
         if (!element.deploymentModelTopology || element.loadedDeploymentModelUrl !== deploymentModelUrl) {
             try {
                 const topology = await loadTopology(deploymentModelUrl);
                 element.loadedDeploymentModelUrl = deploymentModelUrl;
                 element.deploymentModelTopology = topology;
-                newlyLoaded = true;
             } catch (e) {
                 element.showDeploymentModel = false;
                 element.loadedDeploymentModelUrl = null;
@@ -189,10 +188,11 @@ export default class OpenToscaRenderer extends BpmnRenderer {
             left: Math.min(...[...positions.values()].map(p => p.x)) + element.x,
             top: Math.min(...[...positions.values()].map(p => p.y)) + element.y,
             right: Math.max(...[...positions.values()].map(p => p.x)) + NODE_WIDTH + element.x,
-            bottom: Math.max(...[...positions.values()].map(p => p.y)) + NODE_HEIGHT + +element.y
+            bottom: Math.max(...[...positions.values()].map(p => p.y)) + NODE_HEIGHT + element.y
         };
 
-        if (newlyLoaded) {
+        const previousBoundingBox = this.currentlyShownDeploymentsModels.get(element.id)?.boundingBox;
+        if (JSON.stringify(previousBoundingBox) !== JSON.stringify(boundingBox)) {
             this.mayBeMoveNeighborNodes(boundingBox, element);
         }
 
@@ -232,31 +232,32 @@ export default class OpenToscaRenderer extends BpmnRenderer {
 
         const allElements = this.elementRegistry.getAll();
         const commands = [];
+        const moveElement = (otherElement, xShift) => {
+            commands.push({
+                cmd: 'shape.move',
+                context: {
+                    shape: otherElement,
+                    hints: {},
+                    delta: {x: xShift, y: 0}
+                }
+            });
+            const otherElementBoundingBox = this.currentlyShownDeploymentsModels.get(otherElement.id)?.boundingBox;
+            if (otherElementBoundingBox) {
+                otherElementBoundingBox.left += xShift;
+                otherElementBoundingBox.right += xShift;
+            }
+        }
         if (shifts.right) {
             for (const otherElement of allElements) {
                 if (otherElement.x > element.x && otherElement.id !== element.id) {
-                    commands.push({
-                        cmd: 'shape.move',
-                        context: {
-                            shape: otherElement,
-                            hints: {},
-                            delta: {x: shifts.right, y: 0}
-                        }
-                    });
+                    moveElement(otherElement, shifts.right + NODE_SHIFT_MARGIN);
                 }
             }
         }
         if (shifts.left) {
             for (const otherElement of allElements) {
                 if (otherElement.x < element.x && otherElement.id !== element.id) {
-                    commands.push({
-                        cmd: 'shape.move',
-                        context: {
-                            shape: otherElement,
-                            hints: {},
-                            delta: {x: -shifts.left, y: 0}
-                        }
-                    });
+                    moveElement(otherElement, -shifts.left - NODE_SHIFT_MARGIN);
                 }
             }
         }
