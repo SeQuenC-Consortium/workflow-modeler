@@ -1,9 +1,7 @@
 import {HeaderButton} from '@bpmn-io/properties-panel';
-import {useService} from 'bpmn-js-properties-panel';
 import React from 'react';
 import ArtifactWizardModal from './ArtifactWizardModal';
 import {createRoot} from 'react-dom/client';
-import {useState} from 'react';
 import './artifact-modal.css';
 
 /**
@@ -11,38 +9,20 @@ import './artifact-modal.css';
  */
 export function ArtifactUpload(props) {
     const {element} = props;
-    const translate = useService('translate');
 
     const onClick = () => {
         // render config button and pop-up menu
-        console.log("Button Clicked");
-        const root = createRoot(document.getElementById("wizardDiv"));
-        root.render(<Modal/>);
+
+        const root = createRoot(document.getElementById("modal-container"));
+        root.render(<ArtifactWizardModal onClose={() => root.unmount()}/>);
     };
 
     return HeaderButton({
         element,
         id: 'deployment-data-button',
-        text: translate('Deployment Data'),
-        description: 'ArtifactWizard',
+        description: 'Upload Artifact',
         className: "wizard-button",
-        children: 'Artifact Wizard',
+        children: 'Upload Artifact',
         onClick,
     });
-}
-
-function Modal() {
-    const [showModal, setShowModal] = useState(true);
-
-    function handleWizardClosed() {
-        setShowModal(false);
-    }
-
-    return (
-        <div>
-            {showModal && (
-                <ArtifactWizardModal onClose={handleWizardClosed}/>
-            )}
-        </div>
-    );
 }
