@@ -232,32 +232,34 @@ export default class OpenToscaRenderer extends BpmnRenderer {
 
         const allElements = this.elementRegistry.getAll();
         const commands = [];
-        const moveElement = (otherElement, xShift) => {
-            commands.push({
-                cmd: 'shape.move',
-                context: {
-                    shape: otherElement,
-                    hints: {},
-                    delta: {x: xShift, y: 0}
-                }
-            });
-            const otherElementBoundingBox = this.currentlyShownDeploymentsModels.get(otherElement.id)?.boundingBox;
-            if (otherElementBoundingBox) {
-                otherElementBoundingBox.left += xShift;
-                otherElementBoundingBox.right += xShift;
-            }
-        }
-        if (shifts.right) {
+
+        if (shifts.right || shifts.left) {
+            const xPosition = (newBoundingBox.left + newBoundingBox.right) / 2
             for (const otherElement of allElements) {
-                if (otherElement.x > element.x && otherElement.id !== element.id) {
-                    moveElement(otherElement, shifts.right + NODE_SHIFT_MARGIN);
+                let otherXPosition = element.x + NODE_WIDTH / 2;
+                const otherElementBoundingBox = this.currentlyShownDeploymentsModels.get(otherElement.id)?.boundingBox;
+                if (otherElementBoundingBox) {
+                    otherXPosition = (otherElementBoundingBox.left + otherElementBoundingBox.right) / 2;
                 }
-            }
-        }
-        if (shifts.left) {
-            for (const otherElement of allElements) {
-                if (otherElement.x < element.x && otherElement.id !== element.id) {
-                    moveElement(otherElement, -shifts.left - NODE_SHIFT_MARGIN);
+                let xShift
+                if (shifts.right && otherXPosition > xPosition && otherElement.id !== element.id) {
+                    xShift = shifts.right + NODE_SHIFT_MARGIN
+                } else if (shifts.left && otherXPosition < xPosition && otherElement.id !== element.id) {
+                    xShift = -shifts.left - NODE_SHIFT_MARGIN
+                } else {
+                    continue
+                }
+                commands.push({
+                    cmd: 'shape.move',
+                    context: {
+                        shape: otherElement,
+                        hints: {},
+                        delta: {x: xShift, y: 0}
+                    }
+                });
+                if (otherElementBoundingBox) {
+                    otherElementBoundingBox.left += xShift;
+                    otherElementBoundingBox.right += xShift;
                 }
             }
         }
