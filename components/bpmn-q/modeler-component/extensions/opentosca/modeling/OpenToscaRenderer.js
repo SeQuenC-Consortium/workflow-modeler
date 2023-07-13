@@ -242,13 +242,15 @@ export default class OpenToscaRenderer extends BpmnRenderer {
                     otherXPosition = (otherElementBoundingBox.left + otherElementBoundingBox.right) / 2;
                 }
                 let xShift
-                if (shifts.right && otherXPosition > xPosition && otherElement.id !== element.id) {
+                if (shifts.right && otherXPosition >= xPosition && otherElement.id !== element.id) {
                     xShift = shifts.right + NODE_SHIFT_MARGIN
-                } else if (shifts.left && otherXPosition < xPosition && otherElement.id !== element.id) {
+                } else if (shifts.left && otherXPosition <= xPosition && otherElement.id !== element.id) {
                     xShift = -shifts.left - NODE_SHIFT_MARGIN
                 } else {
                     continue
                 }
+                // Can not move elements without parent
+                if(!otherElement.parent) continue;
                 commands.push({
                     cmd: 'shape.move',
                     context: {
