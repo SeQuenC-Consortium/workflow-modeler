@@ -73,24 +73,33 @@ export default function ArtifactWizardModal(props) {
   };
 
   async function createServiceTemplate() {
-    const artifactTemplateAddress = await createArtifactTemplateWithFile(element.businessObject.name + "ArtifactTemplate" + "-" + element.id, selectedOption, uploadFile);
+    const notificationId = NotificationHandler.getInstance().displayNotification({
+        type: 'info',
+        title: 'Uploading Artifact...',
+        content: 'Uploading artifact for ' + element.id,
+        duration: 1000*60*60 // very long time out because this notification gets closed after the API calls are finished
+    });
+    console.log(notificationId);
+    const taskName = element.businessObject.name ? element.businessObject.name : "";
+    const artifactTemplateAddress = await createArtifactTemplateWithFile(taskName + "ArtifactTemplate" + "-" + element.id, selectedOption, uploadFile);
     const artifactTemplateInfo = await getArtifactTemplateInfo(artifactTemplateAddress);
     const artifactTemplateQName = artifactTemplateInfo.serviceTemplateOrNodeTypeOrNodeTypeImplementation[0].type;
     const nodeTypeQName = await getNodeTypeQName(selectedOption);
-    const serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(element.businessObject.name + "ServiceTemplate" + "-" + element.id, nodeTypeQName, element.businessObject.name + "Node" + "-" + element.id, artifactTemplateQName, element.businessObject.name + "Artifact" + "-"  + element.id, selectedOption);
+    const serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(taskName + "ServiceTemplate" + "-" + element.id, nodeTypeQName, taskName + "Node" + "-" + element.id, artifactTemplateQName, taskName + "Artifact" + "-"  + element.id, selectedOption);
     element.businessObject.deploymentModelUrl = "{{ wineryEndpoint }}/servicetemplates/" + serviceTemplateAddress + "?csar";
     const number = await insertTopNodeTag(serviceTemplateAddress, nodeTypeQName);
-    NotificationHandler.getInstance().displayNotification({
+
+    NotificationHandler.getInstance().closeNotification(notificationId);
+    setTimeout(function(){NotificationHandler.getInstance().displayNotification({
       type: 'info',
       title: 'Service Template Created',
       content: 'Service Template including Nodetype with attatched Deployment Artifact of chosen type was successfully created.',
       duration: 4000
-    });
+    });}, 200); // Timeout is needed here because there is a shared global list of notifications that does not get updated immediately
     document.getElementById("properties").style.display = 'none';
     setTimeout(function(){
       document.getElementById("properties").style.display = 'block';
     },1);
-    
 
   }
 
