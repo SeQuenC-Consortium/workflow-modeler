@@ -100,7 +100,7 @@ export function ImplementationProps(props) {
             wineryEndpoint,
             component: ArtifactUpload,
             isEdited: isTextFieldEntryEdited
-        })
+        });
     }
 
     return entries;
