@@ -27,14 +27,14 @@ const Footer = Modal.Footer;
 
 const jquery = require('jquery');
 /**
- * Configuration modal of the editor which displays a set of given configTabs. used to display customized tabs of the
- * plugins to allow them the configurations of their plugin configurations during runtime.
+ * Modal that allows the user to create OpenTOSCA deployment models based on a given artifact.
+ * An artifact can either be a local file or a Dockerimage reference.
  *
  * @param onClose Function called when the modal is closed.
  * @returns {JSX.Element} The modal as React component
  * @constructor
  */
-export default function ArtifactWizardModal(props) {
+export default function ArtifactUploadModal(props) {
     const [uploadFile, setUploadFile] = useState(null);
     const [textInput, setTextInput] = useState('');
     const [selectedTab, setSelectedTab] = useState("artifact");
@@ -90,7 +90,7 @@ export default function ArtifactWizardModal(props) {
     setTimeout(function(){
       document.getElementById("properties").style.display = 'block';
     },1);
-    
+
 
   }
 
@@ -118,7 +118,7 @@ export default function ArtifactWizardModal(props) {
         }
 
         // Call close callback
-        
+
     };
 
     const handleOptionChange = (e) => {
@@ -137,15 +137,15 @@ export default function ArtifactWizardModal(props) {
     if (artifactTypes.length === 0) {
       updateArtifactSelect();
     }
-    
+
 
     return (
         <Modal onClose={onClose}>
-            <Title>Artifact Wizard</Title>
+            <Title>Artifact Modal</Title>
 
             <Body>
                 <div className="qwm-spaceAbove">
-                    <div className="tabButtonsContainer ">
+                    <div className="tab-buttons-container">
                         <div
                             className={`tab ${selectedTab === "artifact" ? "active" : ""}`}
                             onClick={() => setSelectedTab("artifact")}
@@ -161,7 +161,7 @@ export default function ArtifactWizardModal(props) {
                     </div>
 
                     {selectedTab === "artifact" && (
-                        <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""} wizard-tab-content`}>
+                        <div className={`tab-content ${selectedTab === "artifact" ? "active" : ""} upload-tab-content`}>
                             <div className='wizard-artifact-div'>
                               <div className='wizard-artifact-selector'>
                                 <label  className="wizard-properties-panel-label">Select an Option:</label>
@@ -188,7 +188,7 @@ export default function ArtifactWizardModal(props) {
                       </div>
                     )}
                     {selectedTab === "docker" && (
-                        <div className={`tab-content ${selectedTab === "docker" ? "active" : ""} wizard-tab-content`}>
+                        <div className={`tab-content ${selectedTab === "docker" ? "active" : ""} upload-tab-content`}>
                             <label>Image ID:</label>
                             <input
                                 type="string"
@@ -202,8 +202,8 @@ export default function ArtifactWizardModal(props) {
             </Body>
 
             <Footer>
-                <div id="wizardFormButtons">
-                    <button type="button" className="qwm-btn qwm-btn-primary" form="configForm" onClick={onSubmit}>
+                <div id="upload-form-buttons">
+                    <button type="button" className="qwm-btn qwm-btn-primary" form="upload-form" onClick={onSubmit}>
                         Create
                     </button>
                     <button type="button" className="qwm-btn qwm-btn-secondary" onClick={onClose}>
