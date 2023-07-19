@@ -9,7 +9,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getWineryEndpoint } from "../framework-config/config-manager";
+import {getWineryEndpoint} from "../framework-config/config-manager";
 
 const QUANTME_NAMESPACE_PUSH = 'http://quantil.org/quantme/push';
 
@@ -19,7 +19,7 @@ export async function createArtifactTemplate(name, artifactTypeQName) {
         namespace: QUANTME_NAMESPACE_PUSH + '/artifacttemplates',
         type: artifactTypeQName,
     };
-    const response = await fetch(getWineryEndpoint() + '/artifacttemplates', {
+    const response = await fetch(`${getWineryEndpoint()}/artifacttemplates`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export async function createArtifactTemplate(name, artifactTypeQName) {
 export async function addFileToArtifactTemplate(artifactTemplateAddress, file) {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await fetch(getWineryEndpoint() + '/artifacttemplates/' + artifactTemplateAddress + 'files', {
+    const response = await fetch(`${getWineryEndpoint()}/artifacttemplates/${artifactTemplateAddress}files`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -66,40 +66,43 @@ export async function createServiceTemplate(name) {
 }
 
 export async function addNodeToServiceTemplate(serviceTemplateAddress, nodeTypeQName, name) {
-    const nodeTemplate = {"documentation":[],
-    "any":[],
-    "otherAttributes":{},
-    "relationshipTemplates":[],
-    "nodeTemplates":[
-        {"documentation":[],
-        "any":[],
-        "otherAttributes":{
-            "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}x":1245,
-            "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}y":350
-        },
-        "properties":{
-            "propertyType":"KV",
-            "kvproperties":{
-                "Port":"",
-                "Name":""
-            },
-            "elementName":"properties",
-            "namespace":"http://opentosca.org/nodetypes/propertiesdefinition/winery"
-        },
-        "id":nodeTypeQName.split(/}(.*)/s)[1],
-        "type":nodeTypeQName,
-        "name":name,
-        "minInstances":1,
-        "maxInstances":1,
-        "x":1245,
-        "y":350,
-        "capabilities":[],
-        "requirements":[],
-        "deploymentArtifacts":null,
-        "policies":null}
+    const nodeTemplate = {
+        "documentation": [],
+        "any": [],
+        "otherAttributes": {},
+        "relationshipTemplates": [],
+        "nodeTemplates": [
+            {
+                "documentation": [],
+                "any": [],
+                "otherAttributes": {
+                    "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}x": 1245,
+                    "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}y": 350
+                },
+                "properties": {
+                    "propertyType": "KV",
+                    "kvproperties": {
+                        "Port": "",
+                        "Name": ""
+                    },
+                    "elementName": "properties",
+                    "namespace": "http://opentosca.org/nodetypes/propertiesdefinition/winery"
+                },
+                "id": nodeTypeQName.split(/}(.*)/s)[1],
+                "type": nodeTypeQName,
+                "name": name,
+                "minInstances": 1,
+                "maxInstances": 1,
+                "x": 1245,
+                "y": 350,
+                "capabilities": [],
+                "requirements": [],
+                "deploymentArtifacts": null,
+                "policies": null
+            }
         ]
     };
-    const response = await fetch(getWineryEndpoint() + '/servicetemplates/' + serviceTemplateAddress + 'topologytemplate', {
+    const response = await fetch(`${getWineryEndpoint()}/servicetemplates/${serviceTemplateAddress}topologytemplate`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -107,51 +110,53 @@ export async function addNodeToServiceTemplate(serviceTemplateAddress, nodeTypeQ
         },
         body: JSON.stringify(nodeTemplate)
     });
-    return response.status==204;
+    return response.status === 204;
 }
 
 export async function addNodeWithArtifactToServiceTemplate(serviceTemplateAddress, nodeTypeQName, name, artifactTemplateQName, artifactName, artifactTypeQName) {
-    const nodeTemplate = {"documentation":[],
-    "any":[],
-    "otherAttributes":{},
-    "relationshipTemplates":[],
-    "nodeTemplates":[{
-        "documentation":[],
-        "any":[],
-        "otherAttributes":{
-            "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}x":1245,
-            "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}y":350
-        },
-        "properties":{
-            "propertyType":"KV",
-            "kvproperties":{
-                "Port":"",
-                "Name":""
+    const nodeTemplate = {
+        "documentation": [],
+        "any": [],
+        "otherAttributes": {},
+        "relationshipTemplates": [],
+        "nodeTemplates": [{
+            "documentation": [],
+            "any": [],
+            "otherAttributes": {
+                "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}x": 1245,
+                "{http://www.opentosca.org/winery/extensions/tosca/2013/02/12}y": 350
             },
-            "elementName":"properties",
-            "namespace":"http://opentosca.org/nodetypes/propertiesdefinition/winery"
-        },
-        "id":nodeTypeQName.split(/}(.*)/s)[1],
-        "type":nodeTypeQName,
-        "name":name,
-        "minInstances":1,
-        "maxInstances":1,
-        "x":1245,
-        "y":350,
-        "capabilities":[],
-        "requirements":[],
-        "deploymentArtifacts":[{
-            "documentation":[],
-            "any":[],
-            "otherAttributes":{},
-            "name":artifactName,
-            "artifactType":artifactTypeQName,
-            "artifactRef":artifactTemplateQName
-        }],
-        "policies":null}
+            "properties": {
+                "propertyType": "KV",
+                "kvproperties": {
+                    "Port": "",
+                    "Name": ""
+                },
+                "elementName": "properties",
+                "namespace": "http://opentosca.org/nodetypes/propertiesdefinition/winery"
+            },
+            "id": nodeTypeQName.split(/}(.*)/s)[1],
+            "type": nodeTypeQName,
+            "name": name,
+            "minInstances": 1,
+            "maxInstances": 1,
+            "x": 1245,
+            "y": 350,
+            "capabilities": [],
+            "requirements": [],
+            "deploymentArtifacts": [{
+                "documentation": [],
+                "any": [],
+                "otherAttributes": {},
+                "name": artifactName,
+                "artifactType": artifactTypeQName,
+                "artifactRef": artifactTemplateQName
+            }],
+            "policies": null
+        }
         ]
     };
-    const response = await fetch(getWineryEndpoint() + '/servicetemplates/' + serviceTemplateAddress + 'topologytemplate', {
+    const response = await fetch(`${getWineryEndpoint()}/servicetemplates/${serviceTemplateAddress}topologytemplate`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -159,11 +164,11 @@ export async function addNodeWithArtifactToServiceTemplate(serviceTemplateAddres
         },
         body: JSON.stringify(nodeTemplate)
     });
-    return response.status==204;
+    return response.status === 204;
 }
 
-export async function getServiceTemplateXML(serviceTemplateAddress){
-    const response = await fetch(getWineryEndpoint() + '/servicetemplates/' + serviceTemplateAddress + 'xml', {
+export async function getServiceTemplateXML(serviceTemplateAddress) {
+    const response = await fetch(`${getWineryEndpoint()}/servicetemplates/${serviceTemplateAddress}xml`, {
         method: 'GET',
         headers: {
             'Accept': 'application/xml'
@@ -172,7 +177,7 @@ export async function getServiceTemplateXML(serviceTemplateAddress){
     return response.json();
 }
 
-export async function setServiceTemplateXML(serviceTemplateAddress, newXml){
+export async function setServiceTemplateXML(serviceTemplateAddress, newXml) {
     const response = await fetch(getWineryEndpoint() + '/servicetemplates/' + serviceTemplateAddress + 'xml', {
         method: 'PUT',
         body: newXml,
@@ -181,7 +186,7 @@ export async function setServiceTemplateXML(serviceTemplateAddress, newXml){
 }
 
 export async function insertTopNodeTag(serviceTemplateAddress, nodeTypeQName) {
-    const tag= {
+    const tag = {
         name: "top-node",
         value: nodeTypeQName.split(/}(.*)/s)[1],
     };
@@ -202,23 +207,23 @@ export async function createServiceTemplateWithNodeAndArtifact(name, nodeTypeQNa
     return serviceTemplateAddress;
 }
 
-export async function getArtifactTemplateInfo(artifactTemplateAddress){
-    const response = await fetch(getWineryEndpoint() + '/artifacttemplates/' + artifactTemplateAddress, {
+export async function getArtifactTemplateInfo(artifactTemplateAddress) {
+    const response = await fetch(`${getWineryEndpoint()}/artifacttemplates/${artifactTemplateAddress}`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json'
         }
     });
-    return response.json(); 
+    return response.json();
 }
 
-export function getNodeTypeQName(artifactTypeQName){
-    const mapping = new Map([
-        ['{http://opentosca.org/artifacttypes}WAR', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
-        ['{http://opentosca.org/artifacttypes}WAR17', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
-        ['{http://opentosca.org/artifacttypes}WAR8', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
-        ['{http://opentosca.org/artifacttypes}PythonArchiveArtifact', '{http://opentosca.org/nodetypes}PythonApp_3-w1'],
-    ])
-    return mapping.get(artifactTypeQName);
+const nodeTypeQNameMapping = new Map([
+    ['{http://opentosca.org/artifacttypes}WAR', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
+    ['{http://opentosca.org/artifacttypes}WAR17', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
+    ['{http://opentosca.org/artifacttypes}WAR8', '{http://opentosca.org/nodetypes}TomcatApplication_WAR-w1'],
+    ['{http://opentosca.org/artifacttypes}PythonArchiveArtifact', '{http://opentosca.org/nodetypes}PythonApp_3-w1'],
+]);
+export function getNodeTypeQName(artifactTypeQName) {
+    return nodeTypeQNameMapping.get(artifactTypeQName);
 }
 
