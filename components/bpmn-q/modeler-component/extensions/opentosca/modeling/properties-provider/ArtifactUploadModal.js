@@ -74,12 +74,16 @@ export default function ArtifactUploadModal({onClose, wineryEndpoint, element, c
         setIsCreating(true);
         let serviceTemplateAddress;
         try {
-            const artifactTemplateName = `${element.businessObject.name ?? ""}ArtifactTemplate-${element.id}`;
+            const namePrefix = element.businessObject.name ?? "";
+            const artifactTemplateName = `${namePrefix}ArtifactTemplate-${element.id}`;
             const artifactTemplateAddress = await createArtifactTemplateWithFile(artifactTemplateName, selectedOption, uploadFile);
             const artifactTemplateInfo = await getArtifactTemplateInfo(artifactTemplateAddress);
             const artifactTemplateQName = artifactTemplateInfo.serviceTemplateOrNodeTypeOrNodeTypeImplementation[0].type;
             const nodeTypeQName = getNodeTypeQName(selectedOption);
-            serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(element.businessObject.name + "ServiceTemplate" + "-" + element.id, nodeTypeQName, element.businessObject.name + "Node" + "-" + element.id, artifactTemplateQName, element.businessObject.name + "Artifact" + "-" + element.id, selectedOption);
+            const serviceTemplateName = `${namePrefix}ServiceTemplate-${element.id}`;
+            serviceTemplateAddress = await createServiceTemplateWithNodeAndArtifact(serviceTemplateName, nodeTypeQName,
+                `${namePrefix}Node-${element.id}`, artifactTemplateQName,
+                `${namePrefix}Artifact-${element.id}`, selectedOption);
             await insertTopNodeTag(serviceTemplateAddress, nodeTypeQName);
         } catch (e) {
             NotificationHandler.getInstance().displayNotification({
