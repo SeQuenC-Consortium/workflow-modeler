@@ -15,6 +15,7 @@ module.exports = {
         rules: [
             {
                 test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                resourceQuery: { not: [/raw/] },
                 type: 'asset/inline',
             },
             {
@@ -51,6 +52,10 @@ module.exports = {
                 test: /\.bpmn$/,
                 type: "asset/source",
             },
+            {
+                resourceQuery: /raw/,
+                type: 'asset/source',
+            }
         ],
     },
     resolve: {
@@ -65,6 +70,7 @@ module.exports = {
             AWS_RUNTIME_HANDLER_ENDPOINT: 'http://localhost:8890',
             CAMUNDA_ENDPOINT: 'http://localhost:8080/engine-rest',
             DATA_CONFIG: 'http://localhost:8100/data-objects',
+            PROVENANCE_COLLECTION: false,
             DOWNLOAD_FILE_NAME: 'quantum-workflow-model',
             ENABLE_DATA_FLOW_PLUGIN: true,
             ENABLE_PLANQK_PLUGIN: true,
@@ -84,10 +90,13 @@ module.exports = {
             SCRIPT_SPLITTER_ENDPOINT: 'http://localhost:8891',
             SCRIPT_SPLITTER_THRESHOLD: 5,
             TRANSFORMATION_FRAMEWORK_ENDPOINT: 'http://localhost:8888',
-            WINERY_ENDPOINT: 'http://localhost:8081/winery',
-            PROVENANCE_COLLECTION: false
+            UPLOAD_BRANCH_NAME: '',
+            UPLOAD_FILE_NAME: 'workflow',
+            UPLOAD_GITHUB_REPO: '',
+            UPLOAD_GITHUB_USER: '',
+            WINERY_ENDPOINT: 'http://localhost:8080/winery'
         })
     ],
     mode: 'development',
-    devtool: 'source-map',
+    devtool: 'source-map'
 };

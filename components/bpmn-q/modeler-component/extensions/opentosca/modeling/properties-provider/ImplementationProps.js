@@ -96,11 +96,11 @@ export function ImplementationProps(props) {
         });
         entries.push({
             id: 'artifactUpload',
-            element,
+            translate,
             wineryEndpoint,
             component: ArtifactUpload,
             isEdited: isTextFieldEntryEdited
-        })
+        });
     }
 
     return entries;
